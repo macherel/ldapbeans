@@ -1,0 +1,6 @@
+dn: cn=Kim Wilde,ou=system
+objectClass: person
+objectClass: top
+cn: Kim Wilde
+sn: Wilde
+
