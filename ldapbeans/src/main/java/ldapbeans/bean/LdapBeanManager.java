@@ -289,11 +289,13 @@ public final class LdapBeanManager {
     /**
      * Find a list of beans
      * 
+     * @param <T>
+     *            The type of the bean
      * @param p_LdapSearch
      *            The LDAP search
      * @return A list of beans corresponding to the LDAP search
      */
-    public List<?> search(String p_LdapSearch) {
+    public <T extends LdapBean> List<T> search(String p_LdapSearch) {
 	return search(null, p_LdapSearch);
     }
 
@@ -336,13 +338,11 @@ public final class LdapBeanManager {
      *            LdapObject of the LdapBean
      * @return new {@link LdapBean} based on LdapObject
      */
-    @SuppressWarnings("unchecked")
     private <T extends LdapBean> T createInstance(Class<T> p_Class,
 	    LdapObject p_LdapObject) {
 	T bean;
 	Class<?>[] classes;
 	Attributes attributes;
-	LdapBeanHelper ldapBeanHelper;
 	if ((p_LdapObject != null) && (p_LdapObject.getAttributes() != null)) {
 	    if (p_Class != null) {
 		// create interfaces array that LdapBean will implements
@@ -350,18 +350,36 @@ public final class LdapBeanManager {
 	    } else {
 		// p_Class is null, we have to find interfaces that LdapBean
 		// will implements
-		ldapBeanHelper = LdapBeanHelper.getInstance();
 		attributes = p_LdapObject.getAttributes();
-		classes = ldapBeanHelper.getClasses(attributes);
+		classes = LdapBeanHelper.getInstance().getClasses(attributes);
 	    }
 	    // Create a dynamic implementation (a proxy) of the bean
-	    bean = (T) Proxy.newProxyInstance(LdapBeanInvocationHandler.class
-		    .getClassLoader(), classes, new LdapBeanInvocationHandler(
-		    p_LdapObject, m_LdapObjectManager));
+	    bean = createInstance(classes, p_LdapObject);
 	} else {
 	    bean = null;
 	}
 	return bean;
     }
 
+    /**
+     * Create a dynamique implementation of the bean
+     * 
+     * @param <T>
+     *            Type of the bean
+     * @param p_Classes
+     *            Interfaces that the bean will implement
+     * @param p_LdapObject
+     *            LdapObject of the LdapBean
+     * @return A new dynamic implementation of the LdapBean
+     */
+
+    @SuppressWarnings("unchecked")
+    private <T extends LdapBean> T createInstance(Class<?>[] p_Classes,
+	    LdapObject p_LdapObject) {
+	return (T) Proxy
+		.newProxyInstance(LdapBeanInvocationHandler.class
+			.getClassLoader(), p_Classes,
+			new LdapBeanInvocationHandler(p_LdapObject,
+				m_LdapObjectManager));
+    }
 }
