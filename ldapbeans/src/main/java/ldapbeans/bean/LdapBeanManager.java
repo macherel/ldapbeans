@@ -20,7 +20,7 @@
  */
 package ldapbeans.bean;
 
-import java.lang.reflect.Proxy;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -354,7 +354,7 @@ public final class LdapBeanManager {
 		classes = LdapBeanHelper.getInstance().getClasses(attributes);
 	    }
 	    // Create a dynamic implementation (a proxy) of the bean
-	    bean = createInstance(classes, p_LdapObject);
+	    bean = (T) createInstance(classes, p_LdapObject);
 	} else {
 	    bean = null;
 	}
@@ -376,10 +376,39 @@ public final class LdapBeanManager {
     @SuppressWarnings("unchecked")
     private <T extends LdapBean> T createInstance(Class<?>[] p_Classes,
 	    LdapObject p_LdapObject) {
-	return (T) Proxy
-		.newProxyInstance(LdapBeanInvocationHandler.class
-			.getClassLoader(), p_Classes,
-			new LdapBeanInvocationHandler(p_LdapObject,
-				m_LdapObjectManager));
+	try {
+	    return (T) LdapBeanClassManager.getInstance().getClass(p_Classes)
+		    .getConstructor(LdapObject.class, LdapObjectManager.class)
+		    .newInstance(p_LdapObject, m_LdapObjectManager);
+	} catch (InstantiationException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    return null;
+	} catch (IllegalAccessException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    return null;
+	} catch (IllegalArgumentException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    return null;
+	} catch (SecurityException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    return null;
+	} catch (InvocationTargetException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    return null;
+	} catch (NoSuchMethodException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	    return null;
+	}
+	// return (T) Proxy
+	// .newProxyInstance(LdapBeanInvocationHandler.class
+	// .getClassLoader(), p_Classes,
+	// new LdapBeanInvocationHandler(p_LdapObject,
+	// m_LdapObjectManager));
     }
 }

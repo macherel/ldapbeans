@@ -27,7 +27,7 @@ import javax.naming.ldap.LdapContext;
 
 import ldapbeans.util.pool.LdapContextPool;
 
-class LdapObject {
+public class LdapObject {
     private boolean m_IsNew;
     private final LdapContextPool m_Pool;
     private Attributes m_Attributes;

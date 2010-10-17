@@ -36,7 +36,7 @@ import ldapbeans.util.cache.Cache;
 import ldapbeans.util.cache.SimpleCache;
 import ldapbeans.util.pool.LdapContextPool;
 
-class LdapObjectManager {
+public class LdapObjectManager {
 
     /** The logger for this class */
     private final static Logger LOG = new Logger();
