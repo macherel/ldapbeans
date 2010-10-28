@@ -20,7 +20,7 @@
  */
 package ldapbeans.bean;
 
-public class LdabBeanClassLoader extends ClassLoader {
+public class LdapBeanClassLoader extends ClassLoader {
 
     /**
      * Define a new class

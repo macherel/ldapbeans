@@ -39,7 +39,7 @@ import ldapbeans.util.pool.LdapContextPool;
 public class LdapObjectManager {
 
     /** The logger for this class */
-    private final static Logger LOG = new Logger();
+    private final static Logger LOG = Logger.getLogger();
 
     /** Message manager instance */
     private final static MessageManager MESSAGE = MessageManager.getInstance();

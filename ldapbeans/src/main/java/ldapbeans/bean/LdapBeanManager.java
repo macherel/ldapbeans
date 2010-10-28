@@ -20,7 +20,6 @@
  */
 package ldapbeans.bean;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +29,13 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapContext;
 
+import ldapbeans.util.Logger;
 import ldapbeans.util.pool.LdapContextPool;
 
 public final class LdapBeanManager {
+
+    /** Instance of the logger for this class */
+    private final static Logger LOGGER = Logger.getLogger();
 
     /** Map that contains instances per ldap url */
     private final static Map<String, LdapBeanManager> INSTANCES;
@@ -380,29 +383,8 @@ public final class LdapBeanManager {
 	    return (T) LdapBeanClassManager.getInstance().getClass(p_Classes)
 		    .getConstructor(LdapObject.class, LdapObjectManager.class)
 		    .newInstance(p_LdapObject, m_LdapObjectManager);
-	} catch (InstantiationException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	    return null;
-	} catch (IllegalAccessException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	    return null;
-	} catch (IllegalArgumentException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	    return null;
-	} catch (SecurityException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	    return null;
-	} catch (InvocationTargetException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	    return null;
-	} catch (NoSuchMethodException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+	} catch (Exception e) {
+	    LOGGER.error("Can't create a new LdapBean", e);
 	    return null;
 	}
 	// return (T) Proxy

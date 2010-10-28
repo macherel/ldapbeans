@@ -96,7 +96,7 @@ public final class LdapBeanClassManager {
 
     private final Map<String, Class<?>> m_GeneratedClasses;
 
-    private final LdabBeanClassLoader m_ClassLoader;
+    private final LdapBeanClassLoader m_ClassLoader;
 
     /**
      * Default constructor. This class can not be instantiated.
@@ -104,7 +104,7 @@ public final class LdapBeanClassManager {
     private LdapBeanClassManager() {
 	m_Count = 0;
 	m_GeneratedClasses = new HashMap<String, Class<?>>();
-	m_ClassLoader = new LdabBeanClassLoader();
+	m_ClassLoader = new LdapBeanClassLoader();
     }
 
     /**

@@ -20,7 +20,7 @@
  */
 package ldapbeans.util;
 
-public class Logger {
+public final class Logger {
 
     /**
      * Retrieve a logger.
@@ -33,6 +33,15 @@ public class Logger {
 	return new Logger(p_Class);
     }
 
+    /**
+     * Retrieve a logger.
+     * 
+     * @return A logger
+     */
+    public static Logger getLogger() {
+	return new Logger();
+    }
+
     private final org.apache.log4j.Logger m_Logger;
 
     /**
@@ -41,14 +50,14 @@ public class Logger {
      * @param p_Class
      *            The class to log
      */
-    public Logger(Class<?> p_Class) {
+    private Logger(Class<?> p_Class) {
 	m_Logger = org.apache.log4j.Logger.getLogger(p_Class);
     }
 
     /**
      * Create a new Logger
      */
-    public Logger() {
+    private Logger() {
 	String className = new Throwable().getStackTrace()[1].getClassName();
 	m_Logger = org.apache.log4j.Logger.getLogger(className);
     }
