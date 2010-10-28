@@ -17,20 +17,20 @@
   <scm>
     <connection>scm:svn:http://ldapbeans.googlecode.com/svn/trunk/</connection>
     <developerConnection>scm:svn:https://ldapbeans.googlecode.com/svn/trunk/</developerConnection>
-    <url>http://ldapbeans.googlecode.com/svn/trunk</url>
+    <url>http://code.google.com/p/ldapbeans/source/browse/trunk</url>
   </scm>
   <distributionManagement>
     <!-- use the following if you're not using a snapshot version. -->
     <repository>
       <id>ldapbeans.googlecode.releases</id>
       <name>ldapbeans.googlecode.releases</name>
-      <url>dav:https://ldapbeans.googlecode.com/svn/maven2/</url>
+      <url>svn:https://ldapbeans.googlecode.com/svn/maven2/</url>
     </repository>
     <!-- use the following if you ARE using a snapshot version. -->
     <snapshotRepository>
       <id>ldapbeans.googlecode.snapshots</id>
       <name>ldapbeans.googlecode.snapshots</name>
-      <url>dav:https://ldapbeans.googlecode.com/svn/maven2-snapshots/</url>
+      <url>svn:https://ldapbeans.googlecode.com/svn/maven2-snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
   <issueManagement>
@@ -113,9 +113,26 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+            <tagBase>https://ldapbeans.googlecode.com/svn/tags</tagBase>
+            <preparationGoals>clean install</preparationGoals>
+            <goals>deploy assembly:assembly gcupload:gcupload</goals>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.riedelcastro</groupId>
+          <artifactId>maven-gcupload-plugin</artifactId>
+          <version>1.0</version>
         </plugin>
       </plugins>
     </pluginManagement>
+    <extensions>
+      <extension>
+        <groupId>org.jvnet.wagon-svn</groupId>
+        <artifactId>wagon-svn</artifactId>
+        <version>1.8</version>
+      </extension>
+    </extensions>
   </build>
   <profiles>
     <profile>
@@ -146,4 +163,11 @@
       </build>
     </profile>
   </profiles>
+  <repositories>
+    <repository>
+      <id>maven2-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>http://download.java.net/maven/2/</url>
+    </repository>
+  </repositories>
 </project>
