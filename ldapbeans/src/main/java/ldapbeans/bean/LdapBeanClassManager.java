@@ -65,6 +65,8 @@ import java.util.Queue;
 import java.util.Set;
 
 import ldapbeans.annotation.LdapAttribute;
+import ldapbeans.util.Logger;
+import ldapbeans.util.MessageManager;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -73,8 +75,15 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
 public final class LdapBeanClassManager {
+
+    /** Instance of the logger for this class */
+    private final static Logger LOG = Logger.getLogger();
+
     /** Singleton instance of this class */
     private final static LdapBeanClassManager INSTANCE;
+
+    /** Message manager instance */
+    private final static MessageManager MESSAGE = MessageManager.getInstance();
 
     static {
 	INSTANCE = new LdapBeanClassManager();
@@ -269,11 +278,13 @@ public final class LdapBeanClassManager {
 	    } catch (Exception e) {
 		// Should not happen
 		// Nothing to do, the method should not be generated
-		// TODO: Add a warning informing the error
+		LOG.warn(MESSAGE.getMessage(
+			"ldapbeans.generated.class.error", p_ClassName,
+			p_Method), e);
 	    }
 	} else {
-	    // TODO: Add a warning because the method is already created
-	    // (maybe with wrong content)
+	    LOG.warn(MESSAGE.getMessage("ldapbeans.generated.method.exists",
+		    p_ClassName, p_Method));
 	}
     }
 

@@ -20,19 +20,57 @@
  */
 package ldapbeans.util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MessageManager {
 
-    private final static MessageManager INSTANCE = new MessageManager();
+    /** Map of instances */
+    private final static Map<String, MessageManager> INSTANCES = new HashMap<String, MessageManager>();
+
+    /** Pattern of parameter in messages */
+    private final static Pattern PATTERN = Pattern.compile("(\\$\\d+)");
 
     /**
-     * Return the singleton instance
+     * Return the default instance
      * 
-     * @return The singleton instance
+     * @return The default instance
      */
     public static MessageManager getInstance() {
-	return INSTANCE;
+	return getInstance("ldapbeans");
+    }
+
+    /**
+     * Return an instance corresponding to the bundle name
+     * 
+     * @param p_BundleName
+     *            The name of the bundle of the message to manage
+     * @return The singleton instance
+     */
+    public static MessageManager getInstance(String p_BundleName) {
+	MessageManager instance = INSTANCES.get(p_BundleName);
+	if (instance == null) {
+	    instance = new MessageManager(p_BundleName);
+	    INSTANCES.put(p_BundleName, instance);
+	}
+	return instance;
+    }
+
+    /** The name of the bundle of the message to manage */
+    private final ResourceBundle m_ResourceBundle;
+
+    /**
+     * Constructor of the message manager
+     * 
+     * @param p_BundleName
+     *            The name of the resource bundle to manage
+     */
+    private MessageManager(String p_BundleName) {
+	m_ResourceBundle = ResourceBundle.getBundle(p_BundleName);
     }
 
     /**
@@ -46,8 +84,27 @@ public class MessageManager {
      */
     public String getMessage(String p_Key, Object... p_Params) {
 	String message;
-	message = ResourceBundle.getBundle("ldapbeans").getString(p_Key);
-	message = String.format(message, p_Params);
+	ArrayList<Object> params = new ArrayList<Object>();
+
+	message = m_ResourceBundle.getString(p_Key);
+
+	Matcher matcher = PATTERN.matcher(message);
+	int index = 0;
+	int i = -1;
+	while (matcher.find(index)) {
+	    i = Integer.parseInt(matcher.group().substring(1));
+	    params.add(p_Params[i - 1]);
+	    index = matcher.end();
+	}
+
+	// Replace every "$i" with "%s"
+	matcher.reset();
+	message = matcher.replaceAll("%s");
+
+	// Replace every "%s" with parameters
+	message = String.format(message, params.toArray());
+
+	// Return formatted message
 	return message;
     }
 }

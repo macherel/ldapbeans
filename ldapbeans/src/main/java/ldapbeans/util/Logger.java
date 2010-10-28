@@ -58,7 +58,7 @@ public final class Logger {
      * Create a new Logger
      */
     private Logger() {
-	String className = new Throwable().getStackTrace()[1].getClassName();
+	String className = new Throwable().getStackTrace()[2].getClassName();
 	m_Logger = org.apache.log4j.Logger.getLogger(className);
     }
 
@@ -71,6 +71,29 @@ public final class Logger {
     public void info(String p_Message) {
 	m_Logger.info(p_Message);
 
+    }
+
+    /**
+     * Log a message object with the WARN Level.
+     * 
+     * @param p_Message
+     *            The message to log
+     */
+    public void warn(String p_Message) {
+	m_Logger.warn(p_Message);
+
+    }
+
+    /**
+     * Log a message object with the WARN Level.
+     * 
+     * @param p_Message
+     *            The message to log
+     * @param p_Throwable
+     *            The source of the warning
+     */
+    public void warn(String p_Message, Throwable p_Throwable) {
+	m_Logger.warn(p_Message, p_Throwable);
     }
 
     /**

@@ -35,7 +35,7 @@ import ldapbeans.util.pool.LdapContextPool;
 public final class LdapBeanManager {
 
     /** Instance of the logger for this class */
-    private final static Logger LOGGER = Logger.getLogger();
+    private final static Logger LOG = Logger.getLogger();
 
     /** Map that contains instances per ldap url */
     private final static Map<String, LdapBeanManager> INSTANCES;
@@ -384,7 +384,7 @@ public final class LdapBeanManager {
 		    .getConstructor(LdapObject.class, LdapObjectManager.class)
 		    .newInstance(p_LdapObject, m_LdapObjectManager);
 	} catch (Exception e) {
-	    LOGGER.error("Can't create a new LdapBean", e);
+	    LOG.error("Can't create a new LdapBean", e);
 	    return null;
 	}
 	// return (T) Proxy

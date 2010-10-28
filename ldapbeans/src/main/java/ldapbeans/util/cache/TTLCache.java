@@ -92,7 +92,8 @@ public class TTLCache<K, V> extends LRUCacheImpl<K, V> {
 	LinkedList<CacheEntry<K, V>> cache = getInternalCache();
 	if (m_Ttl >= 0) {
 	    while (!cache.isEmpty()
-		    && ((TTLCacheEntry<K, V>) cache.getLast()).getTimestamp() > (timespamp - m_Ttl)) {
+		    && ((TTLCacheEntry<K, V>) cache.getLast()).getTimestamp()
+			    + m_Ttl < timespamp) {
 		cache.removeLast();
 	    }
 	}

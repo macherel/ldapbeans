@@ -22,10 +22,6 @@ package ldapbeans.util.cache;
 
 import static ldapbeans.util.cache.CacheFactory.CacheType.LRU;
 import static ldapbeans.util.cache.CacheFactory.CacheType.SIMPLE;
-
-import java.util.Timer;
-import java.util.TimerTask;
-
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -155,16 +151,16 @@ public class CacheTest {
      * @throws Exception
      *             If an error occurs
      */
+    @Test
     public void testTtlCache() throws Exception {
+	long ref = System.currentTimeMillis();
 	TTLCache<String, String> cache = new TTLCache<String, String>();
-	cache.setTtl(500);
-	new Timer().schedule(new TimerTask() {
-
-	    @Override
-	    public void run() {
-		// TODO Auto-generated method stub
-
-	    }
-	}, 5000);
+	cache.setTtl(20000);
+	for (int i = 0; i < 10; i++) {
+	    cache.put("key" + i, "value" + i);
+	    Thread.sleep(2000);
+	}
+	Thread.sleep(2500);
+	Assert.assertEquals(8, cache.size());
     }
 }
