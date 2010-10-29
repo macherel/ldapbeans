@@ -125,7 +125,7 @@
       <plugin>
         <groupId>org.riedelcastro</groupId>
         <artifactId>gcupload-maven-plugin</artifactId>
-        <version>0.9.1-SNAPSHOT</version>
+        <version>0.9</version>
         <configuration>
         <dryRun>true</dryRun>
         </configuration>
