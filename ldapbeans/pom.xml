@@ -119,13 +119,18 @@
             <goals>deploy assembly:assembly gcupload:gcupload</goals>
           </configuration>
         </plugin>
-        <plugin>
-          <groupId>org.riedelcastro</groupId>
-          <artifactId>maven-gcupload-plugin</artifactId>
-          <version>1.0</version>
-        </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.riedelcastro</groupId>
+        <artifactId>gcupload-maven-plugin</artifactId>
+        <version>0.9.1-SNAPSHOT</version>
+        <configuration>
+        <dryRun>true</dryRun>
+        </configuration>
+      </plugin>
+    </plugins>
     <extensions>
       <extension>
         <groupId>org.jvnet.wagon-svn</groupId>
@@ -170,4 +175,22 @@
       <url>http://download.java.net/maven/2/</url>
     </repository>
   </repositories>
+<!--  <pluginRepositories>-->
+<!--    <pluginRepository>-->
+<!--      <id>central</id>-->
+<!--      <name>Maven Plugin Repository</name>-->
+<!--      <url>http://repo1.maven.org/maven2</url>-->
+<!--      <layout>default</layout>-->
+<!--      <snapshots>-->
+<!--        <enabled>false</enabled>-->
+<!--      </snapshots>-->
+<!--      <releases>-->
+<!--        <updatePolicy>never</updatePolicy>-->
+<!--      </releases>-->
+<!--    </pluginRepository>-->
+<!--    <pluginRepository>-->
+<!--      <id>repository.riedelcastro.org</id>-->
+<!--      <url>http://repository.riedelcastro.org</url>-->
+<!--    </pluginRepository>-->
+<!--  </pluginRepositories>-->
 </project>
