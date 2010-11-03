@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.googlecode.ldapbeans</groupId>
   <artifactId>ldapbeans</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.2</version>
   <packaging>jar</packaging>
   <name>ldapbeans</name>
   <description>LDAPBeans is a tool that allow you to access easily to LDAP objects throw Java interfaces.</description>
@@ -14,9 +14,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:svn:http://ldapbeans.googlecode.com/svn/trunk/ldapbeans</connection>
-    <developerConnection>scm:svn:https://ldapbeans.googlecode.com/svn/trunk/ldapbeans</developerConnection>
-    <url>http://code.google.com/p/ldapbeans/source/browse/trunk</url>
+    <connection>scm:svn:http://ldapbeans.googlecode.com/svn/tags/ldapbeans-0.0.2</connection>
+    <developerConnection>scm:svn:https://ldapbeans.googlecode.com/svn/tags/ldapbeans-0.0.2</developerConnection>
+    <url>http://code.google.com/p/ldapbeans/source/browse/tags/ldapbeans-0.0.2</url>
   </scm>
   <distributionManagement>
     <!-- use the following if you're not using a snapshot version. -->
@@ -112,13 +112,6 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-<!--
-          <configuration>
-            <tagBase>https://ldapbeans.googlecode.com/svn/tags</tagBase>
-            <preparationGoals>clean install</preparationGoals>
-            <goals>deploy assembly:assembly gcu:upload</goals>
-          </configuration>
--->
         </plugin>
         <plugin>
           <groupId>com.googlecode.maven-gcu-plugin</groupId>
@@ -179,6 +172,7 @@
       </resource>
     </resources>
   </build>
+<!--
   <profiles>
     <profile>
       <id>release-sign-artifacts</id>
@@ -208,6 +202,7 @@
       </build>
     </profile>
   </profiles>
+-->
   <repositories>
     <repository>
       <id>maven2-repository.dev.java.net</id>
