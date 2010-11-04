@@ -55,6 +55,8 @@ import static org.objectweb.asm.Opcodes.PUTFIELD;
 import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_5;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
@@ -65,8 +67,9 @@ import java.util.Queue;
 import java.util.Set;
 
 import ldapbeans.annotation.LdapAttribute;
+import ldapbeans.util.LdapbeansConfiguration;
+import ldapbeans.util.LdapbeansMessageManager;
 import ldapbeans.util.Logger;
-import ldapbeans.util.MessageManager;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -83,7 +86,12 @@ public final class LdapBeanClassManager {
     private final static LdapBeanClassManager INSTANCE;
 
     /** Message manager instance */
-    private final static MessageManager MESSAGE = MessageManager.getInstance();
+    private final static LdapbeansMessageManager MESSAGE = LdapbeansMessageManager
+	    .getInstance();
+
+    /** the configuration */
+    private final static LdapbeansConfiguration CONFIG = LdapbeansConfiguration
+	    .getInstance();
 
     static {
 	INSTANCE = new LdapBeanClassManager();
@@ -178,6 +186,21 @@ public final class LdapBeanClassManager {
 	cw.visitEnd();
 
 	byte[] datas = cw.toByteArray();
+
+	String generatedClassPath = CONFIG.getGeneratedClassPath();
+	if (generatedClassPath != null) {
+	    String path = generatedClassPath + "ldapbeans/bean";
+	    String filename = className + ".class";
+	    File file = new File(path, filename);
+	    try {
+		FileOutputStream fos = new FileOutputStream(file);
+		fos.write(datas);
+	    } catch (Exception e) {
+		LOG.error(MESSAGE.getGeneratedClassWriteErrorMessage(className,
+			file.getAbsolutePath()), e);
+	    }
+	}
+
 	return m_ClassLoader.defineClass("ldapbeans.bean." + className, datas);
     }
 
@@ -278,13 +301,12 @@ public final class LdapBeanClassManager {
 	    } catch (Exception e) {
 		// Should not happen
 		// Nothing to do, the method should not be generated
-		LOG.warn(MESSAGE.getMessage(
-			"ldapbeans.generated.class.error", p_ClassName,
+		LOG.warn(MESSAGE.getGeneratedClassErrorMessage(p_ClassName,
 			p_Method), e);
 	    }
 	} else {
-	    LOG.warn(MESSAGE.getMessage("ldapbeans.generated.method.exists",
-		    p_ClassName, p_Method));
+	    LOG.warn(MESSAGE.getGeneratedMethodExistsMessage(p_ClassName,
+		    p_Method));
 	}
     }
 

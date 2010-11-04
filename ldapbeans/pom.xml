@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:svn:http://ldapbeans.googlecode.com/svn/trunk/ldapbeans</connection>
     <developerConnection>scm:svn:https://ldapbeans.googlecode.com/svn/trunk/ldapbeans</developerConnection>
-    <url>http://code.google.com/p/ldapbeans/source/browse/trunk</url>
+    <url>http://code.google.com/p/ldapbeans/source/browse/trunk/ldapbeans</url>
   </scm>
   <distributionManagement>
     <!-- use the following if you're not using a snapshot version. -->

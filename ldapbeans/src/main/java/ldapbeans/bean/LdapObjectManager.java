@@ -30,8 +30,9 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapContext;
 
+import ldapbeans.util.LdapbeansConfiguration;
+import ldapbeans.util.LdapbeansMessageManager;
 import ldapbeans.util.Logger;
-import ldapbeans.util.MessageManager;
 import ldapbeans.util.cache.Cache;
 import ldapbeans.util.cache.SimpleCache;
 import ldapbeans.util.pool.LdapContextPool;
@@ -41,11 +42,12 @@ public class LdapObjectManager {
     /** The logger for this class */
     private final static Logger LOG = Logger.getLogger();
 
+    /** the configuration */
+    private final static LdapbeansConfiguration CONFIG = LdapbeansConfiguration
+	    .getInstance();
     /** Message manager instance */
-    private final static MessageManager MESSAGE = MessageManager.getInstance();
-
-    /** Name of the property that describe the class cache implementation */
-    private final static String PROPERTY_CACHE_CLASS_IMPLEMENTATION = "ldapbeans.cache.impl";
+    private final static LdapbeansMessageManager MESSAGE = LdapbeansMessageManager
+	    .getInstance();
 
     /** cache of LdapObject */
     private Cache<String, LdapObject> m_Cache;
@@ -68,16 +70,14 @@ public class LdapObjectManager {
      */
     @SuppressWarnings("unchecked")
     public LdapObjectManager(LdapContextPool p_Pool, String p_Root) {
-	String className = System
-		.getProperty(PROPERTY_CACHE_CLASS_IMPLEMENTATION);
+	String className = CONFIG.getCacheImplementationClassName();
 	try {
 	    Class<?> clazz = ClassLoader.getSystemClassLoader().loadClass(
 		    className);
 	    m_Cache = (Cache<String, LdapObject>) clazz.newInstance();
-	    LOG.info(MESSAGE.getMessage("ldapbeans.cache.impl", className));
+	    LOG.info(MESSAGE.getCacheImplementationMessage(className));
 	} catch (Exception e) {
-	    LOG.error(MESSAGE.getMessage("ldapbeans.cache.impl.error",
-		    className));
+	    LOG.error(MESSAGE.getCacheImplementationErrorMessage(className));
 	    m_Cache = new SimpleCache<String, LdapObject>();
 	}
 	m_Pool = p_Pool;

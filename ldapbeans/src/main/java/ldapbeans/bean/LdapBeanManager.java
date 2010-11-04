@@ -20,6 +20,7 @@
  */
 package ldapbeans.bean;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,8 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapContext;
 
+import ldapbeans.util.LdapbeansConfiguration;
+import ldapbeans.util.LdapbeansMessageManager;
 import ldapbeans.util.Logger;
 import ldapbeans.util.pool.LdapContextPool;
 
@@ -37,6 +40,12 @@ public final class LdapBeanManager {
     /** Instance of the logger for this class */
     private final static Logger LOG = Logger.getLogger();
 
+    /** Message manager instance */
+    private final static LdapbeansMessageManager MESSAGE = LdapbeansMessageManager
+	    .getInstance();
+    /** the configuration */
+    private final static LdapbeansConfiguration CONFIG = LdapbeansConfiguration
+	    .getInstance();
     /** Map that contains instances per ldap url */
     private final static Map<String, LdapBeanManager> INSTANCES;
 
@@ -379,18 +388,23 @@ public final class LdapBeanManager {
     @SuppressWarnings("unchecked")
     private <T extends LdapBean> T createInstance(Class<?>[] p_Classes,
 	    LdapObject p_LdapObject) {
-	try {
-	    return (T) LdapBeanClassManager.getInstance().getClass(p_Classes)
-		    .getConstructor(LdapObject.class, LdapObjectManager.class)
-		    .newInstance(p_LdapObject, m_LdapObjectManager);
-	} catch (Exception e) {
-	    LOG.error("Can't create a new LdapBean", e);
-	    return null;
+	if (CONFIG.useProxyBean()) {
+	    return (T) Proxy.newProxyInstance(LdapBeanInvocationHandler.class
+		    .getClassLoader(), p_Classes,
+		    new LdapBeanInvocationHandler(p_LdapObject,
+			    m_LdapObjectManager));
+	} else {
+	    try {
+		return (T) LdapBeanClassManager
+			.getInstance()
+			.getClass(p_Classes)
+			.getConstructor(LdapObject.class,
+				LdapObjectManager.class)
+			.newInstance(p_LdapObject, m_LdapObjectManager);
+	    } catch (Exception e) {
+		LOG.error(MESSAGE.getLdapBeanCreationErrorMessage(), e);
+		return null;
+	    }
 	}
-	// return (T) Proxy
-	// .newProxyInstance(LdapBeanInvocationHandler.class
-	// .getClassLoader(), p_Classes,
-	// new LdapBeanInvocationHandler(p_LdapObject,
-	// m_LdapObjectManager));
     }
 }
