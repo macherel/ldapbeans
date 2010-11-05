@@ -68,8 +68,8 @@ import java.util.Set;
 
 import ldapbeans.annotation.LdapAttribute;
 import ldapbeans.util.LdapbeansConfiguration;
-import ldapbeans.util.LdapbeansMessageManager;
-import ldapbeans.util.Logger;
+import ldapbeans.util.i18n.LdapbeansMessageManager;
+import ldapbeans.util.i18n.Logger;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;

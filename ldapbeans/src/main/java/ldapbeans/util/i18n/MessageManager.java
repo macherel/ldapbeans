@@ -18,7 +18,7 @@
  *
  * Copyright 2010 Bruno Macherel
  */
-package ldapbeans.util;
+package ldapbeans.util.i18n;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MessageManager {
+public final class MessageManager {
 
     /** Map of instances */
     private final static Map<String, MessageManager> INSTANCES = new HashMap<String, MessageManager>();
@@ -41,7 +41,12 @@ public class MessageManager {
      * @return The default instance
      */
     public static MessageManager getInstance() {
-	return getInstance("ldapbeans");
+	String resourceBundleName = System
+		.getProperty("ldapbeans.default.resource.bundle.name");
+	if (resourceBundleName == null) {
+	    resourceBundleName = "ldapbeans";
+	}
+	return getInstance(resourceBundleName);
     }
 
     /**

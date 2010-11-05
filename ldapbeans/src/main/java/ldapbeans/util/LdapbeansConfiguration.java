@@ -20,7 +20,13 @@
  */
 package ldapbeans.util;
 
-public final class LdapbeansConfiguration {
+import java.lang.management.ManagementFactory;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
+public final class LdapbeansConfiguration implements
+	LdapbeansConfigurationMBean {
 
     /** Name of the property that describe the class cache implementation */
     private final static String PROPERTY_CACHE_CLASS_IMPLEMENTATION = "ldapbeans.cache.impl";
@@ -47,44 +53,84 @@ public final class LdapbeansConfiguration {
 	return INSTANCE;
     }
 
+    /** Static constructor */
+    static {
+	MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+	try {
+	    ObjectName name = new ObjectName("ldapbeans:type=Configuration");
+	    mbs.registerMBean(INSTANCE, name);
+	} catch (Exception e) {
+	    e.printStackTrace();
+	    // Nothing to do
+	}
+    }
+
+    /** Path where generated class will be written */
+    private String m_GeneratedClassPath;
+
+    /** The name of the class the will be used for cache */
+    private final String m_CacheImplementationClassName;
+
+    /** Flag that indicate if Proxy will be used when creating beans */
+    private boolean m_UseProxyBean;
+
     /**
      * Create a new configuration
      */
     private LdapbeansConfiguration() {
-	// Nothing to do
+	m_GeneratedClassPath = System
+		.getProperty(PROPERTY_GENERATED_CLASS_PATH);
+	m_CacheImplementationClassName = System
+		.getProperty(PROPERTY_CACHE_CLASS_IMPLEMENTATION);
+	m_UseProxyBean = System.getProperty(PROPERTY_USE_PROXY_BEAN) != null;
     }
 
-    /**
-     * Return the path where the generated class will be stored or
-     * <code>null</code> if generated class will not be stored on file system
+    /*
+     * (non-Javadoc)
      * 
-     * @return The path where the generated class will be stored or
-     *         <code>null</code> if generated class will not be stored on file
-     *         system
+     * @see ldapbeans.util.LdapbeansConfigurationMBean#getGeneratedClassPath()
      */
     public String getGeneratedClassPath() {
-	return System.getProperty(PROPERTY_GENERATED_CLASS_PATH);
+	return m_GeneratedClassPath;
     }
 
-    /**
-     * Return the name of the cache class implementation
+    /*
+     * (non-Javadoc)
      * 
-     * @return The name of the cache class implementation
+     * @see
+     * ldapbeans.util.LdapbeansConfigurationMBean#setGeneratedClassPath(java
+     * .lang.String)
+     */
+    public void setGeneratedClassPath(String p_GeneratedClassPath) {
+	m_GeneratedClassPath = p_GeneratedClassPath;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * ldapbeans.util.LdapbeansConfigurationMBean#getCacheImplementationClassName
+     * ()
      */
     public String getCacheImplementationClassName() {
-	return System.getProperty(PROPERTY_CACHE_CLASS_IMPLEMENTATION);
+	return m_CacheImplementationClassName;
     }
 
-    /**
-     * Return <code>true</code> if ldapbeans have to use dynamic proxy to
-     * implements beans, <code>false</code> if beans classes have to be
-     * generated
+    /*
+     * (non-Javadoc)
      * 
-     * @return <code>true</code> if ldapbeans have to use dynamic proxy to
-     *         implements beans, <code>false</code> if beans classes have to be
-     *         generated
+     * @see ldapbeans.util.LdapbeansConfigurationMBean#useProxyBean()
      */
     public boolean useProxyBean() {
-	return System.getProperty(PROPERTY_USE_PROXY_BEAN) != null;
+	return m_UseProxyBean;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ldapbeans.util.LdapbeansConfigurationMBean#setUseProxyBean(boolean)
+     */
+    public void setUseProxyBean(boolean p_UseProxyBean) {
+	m_UseProxyBean = p_UseProxyBean;
     }
 }

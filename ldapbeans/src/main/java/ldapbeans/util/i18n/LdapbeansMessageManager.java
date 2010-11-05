@@ -18,7 +18,7 @@
  *
  * Copyright 2010 Bruno Macherel
  */
-package ldapbeans.util;
+package ldapbeans.util.i18n;
 
 import java.lang.reflect.Method;
 
@@ -26,9 +26,6 @@ public final class LdapbeansMessageManager {
 
     /** Singleton instance of this class */
     private final static LdapbeansMessageManager INSTANCE = new LdapbeansMessageManager();
-
-    /** Message manager instance */
-    private final static MessageManager MESSAGE = MessageManager.getInstance();
 
     /**
      * Return the singleton instance
@@ -53,8 +50,8 @@ public final class LdapbeansMessageManager {
      *            The name of the class used as cache implementation
      * @return The cache implementation message
      */
-    public String getCacheImplementationMessage(String p_ClassName) {
-	return MESSAGE.getMessage("ldapbeans.cache.impl", p_ClassName);
+    public Message getCacheImplementationMessage(String p_ClassName) {
+	return new Message("ldapbeans.cache.impl", p_ClassName);
     }
 
     /**
@@ -64,8 +61,8 @@ public final class LdapbeansMessageManager {
      *            The name of the class not used as cache implementation
      * @return The cache implementation error message
      */
-    public String getCacheImplementationErrorMessage(String p_ClassName) {
-	return MESSAGE.getMessage("ldapbeans.cache.impl.error", p_ClassName);
+    public Message getCacheImplementationErrorMessage(String p_ClassName) {
+	return new Message("ldapbeans.cache.impl.error", p_ClassName);
     }
 
     /**
@@ -79,9 +76,9 @@ public final class LdapbeansMessageManager {
      * @return The message to use when an error occurs when trying to write
      *         generated class in a file
      */
-    public String getGeneratedClassWriteErrorMessage(String p_ClassName,
+    public Message getGeneratedClassWriteErrorMessage(String p_ClassName,
 	    String p_FileName) {
-	return MESSAGE.getMessage("ldapbeans.generated.class.write.error",
+	return new Message("ldapbeans.generated.class.write.error",
 		p_ClassName, p_FileName);
     }
 
@@ -94,10 +91,10 @@ public final class LdapbeansMessageManager {
      *            The generated method
      * @return The message to use when an error occurs when a class is generated
      */
-    public String getGeneratedClassErrorMessage(String p_ClassName,
+    public Message getGeneratedClassErrorMessage(String p_ClassName,
 	    Method p_Method) {
-	return MESSAGE.getMessage("ldapbeans.generated.class.error",
-		p_ClassName, p_Method);
+	return new Message("ldapbeans.generated.class.error", p_ClassName,
+		p_Method);
     }
 
     /**
@@ -109,10 +106,10 @@ public final class LdapbeansMessageManager {
      *            The generated method
      * @return The message to use if a method is already generated
      */
-    public String getGeneratedMethodExistsMessage(String p_ClassName,
+    public Message getGeneratedMethodExistsMessage(String p_ClassName,
 	    Method p_Method) {
-	return MESSAGE.getMessage("ldapbeans.generated.method.exists",
-		p_ClassName, p_Method);
+	return new Message("ldapbeans.generated.method.exists", p_ClassName,
+		p_Method);
     }
 
     /**
@@ -122,8 +119,8 @@ public final class LdapbeansMessageManager {
      * @return The message to use when an error occurs during the creation of a
      *         LdapBean
      */
-    public String getLdapBeanCreationErrorMessage() {
-	return MESSAGE.getMessage("ldapbeans.bean.creation.error");
+    public Message getLdapBeanCreationErrorMessage() {
+	return new Message("ldapbeans.bean.creation.error");
     }
 
 }

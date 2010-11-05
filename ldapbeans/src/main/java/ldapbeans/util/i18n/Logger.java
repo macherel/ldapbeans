@@ -18,9 +18,14 @@
  *
  * Copyright 2010 Bruno Macherel
  */
-package ldapbeans.util;
+package ldapbeans.util.i18n;
+
+import org.apache.log4j.Level;
 
 public final class Logger {
+
+    /** Message manager instance */
+    private final static MessageManager MESSAGE = MessageManager.getInstance();
 
     /**
      * Retrieve a logger.
@@ -68,8 +73,10 @@ public final class Logger {
      * @param p_Message
      *            The message to log
      */
-    public void info(String p_Message) {
-	m_Logger.info(p_Message);
+    public void info(Message p_Message) {
+	if (m_Logger.isEnabledFor(Level.INFO)) {
+	    m_Logger.info(convertMessage(p_Message));
+	}
 
     }
 
@@ -79,8 +86,10 @@ public final class Logger {
      * @param p_Message
      *            The message to log
      */
-    public void warn(String p_Message) {
-	m_Logger.warn(p_Message);
+    public void warn(Message p_Message) {
+	if (m_Logger.isEnabledFor(Level.WARN)) {
+	    m_Logger.warn(convertMessage(p_Message));
+	}
 
     }
 
@@ -92,8 +101,10 @@ public final class Logger {
      * @param p_Throwable
      *            The source of the warning
      */
-    public void warn(String p_Message, Throwable p_Throwable) {
-	m_Logger.warn(p_Message, p_Throwable);
+    public void warn(Message p_Message, Throwable p_Throwable) {
+	if (m_Logger.isEnabledFor(Level.WARN)) {
+	    m_Logger.warn(convertMessage(p_Message), p_Throwable);
+	}
     }
 
     /**
@@ -102,8 +113,10 @@ public final class Logger {
      * @param p_Message
      *            The message to log
      */
-    public void error(String p_Message) {
-	m_Logger.error(p_Message);
+    public void error(Message p_Message) {
+	if (m_Logger.isEnabledFor(Level.ERROR)) {
+	    m_Logger.error(convertMessage(p_Message));
+	}
 
     }
 
@@ -115,7 +128,21 @@ public final class Logger {
      * @param p_Throwable
      *            The source of the error
      */
-    public void error(String p_Message, Throwable p_Throwable) {
-	m_Logger.error(p_Message, p_Throwable);
+    public void error(Message p_Message, Throwable p_Throwable) {
+	if (m_Logger.isEnabledFor(Level.ERROR)) {
+	    m_Logger.error(convertMessage(p_Message), p_Throwable);
+	}
+    }
+
+    /**
+     * Convert message to String by replacing the parameters by their value
+     * 
+     * @param p_Message
+     *            Message to convert
+     * @return The String that represent the message
+     */
+    private static String convertMessage(Message p_Message) {
+	return MESSAGE.getMessage(p_Message.getMessageProperty(),
+		p_Message.getParameters());
     }
 }

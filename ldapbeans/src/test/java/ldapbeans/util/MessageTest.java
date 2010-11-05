@@ -21,6 +21,7 @@
 package ldapbeans.util;
 
 import junit.framework.Assert;
+import ldapbeans.util.i18n.MessageManager;
 
 import org.junit.Test;
 

@@ -32,6 +32,10 @@
 		</layout>
 	</appender>
 
+	<category name="ldapbeans">
+		<level value="WARN"></level>
+	</category>
+
 	<root>
 		<level value="WARN"></level>
 		<appender-ref ref="asyncAppender" />

@@ -31,8 +31,8 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapContext;
 
 import ldapbeans.util.LdapbeansConfiguration;
-import ldapbeans.util.LdapbeansMessageManager;
-import ldapbeans.util.Logger;
+import ldapbeans.util.i18n.LdapbeansMessageManager;
+import ldapbeans.util.i18n.Logger;
 import ldapbeans.util.pool.LdapContextPool;
 
 public final class LdapBeanManager {
