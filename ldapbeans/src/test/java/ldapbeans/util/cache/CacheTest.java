@@ -107,9 +107,7 @@ public class CacheTest {
 	for (int i = 0; i < size; i++) {
 	    cache.put(keys[i], values[i]);
 	}
-	for (int i = 0; i < keys.length; i++) {
-	    Assert.assertEquals("v" + i, cache.get(keys[i]));
-	}
+	testCache(cache, keys, null);
     }
 
     /**
@@ -162,5 +160,98 @@ public class CacheTest {
 	}
 	Thread.sleep(2500);
 	Assert.assertEquals(8, cache.size());
+    }
+
+    /**
+     * Test {@link CommitableCache} Implementation
+     */
+    @Test
+    public void testCommitableCache() {
+	int size = 10;
+	CommitableCache<String, String> cache = new CommitableCacheImpl<String, String>();
+	String[] keys = new String[size];
+	String[] values = new String[size];
+	initCache(cache, keys, values);
+	for (int i = 0; i < size; i++) {
+	    cache.put(keys[i], values[i]);
+	}
+
+	Assert.assertEquals(size, cache.size());
+	testCache(cache, keys, null);
+	cache.rollback();
+	Assert.assertEquals(0, cache.size());
+
+	for (int i = 0; i < size; i++) {
+	    cache.put(keys[i], values[i]);
+	}
+	testCache(cache, keys, null);
+	cache.commit();
+	cache.rollback();
+	Assert.assertEquals(size, cache.size());
+	testCache(cache, keys, null);
+
+	for (int i = 0; i < size; i++) {
+	    cache.put("2-" + keys[i], values[i]);
+	}
+	Assert.assertEquals(2 * size, cache.size());
+	testCache(cache, keys, null);
+	testCache(cache, keys, "2-");
+
+	cache.rollback();
+	Assert.assertEquals(size, cache.size());
+	testCache(cache, keys, null);
+    }
+
+    /**
+     * Test validity of a cache
+     * 
+     * @param p_Cache
+     *            The cache to test
+     * @param p_Keys
+     *            Keys of the cache to test
+     * @param p_KeyPrefix
+     *            prefix of the keys
+     */
+    private void testCache(Cache<String, ?> p_Cache, String[] p_Keys,
+	    String p_KeyPrefix) {
+	for (int i = 0; i < p_Keys.length; i++) {
+	    Assert.assertEquals(
+		    "v" + i,
+		    p_Cache.get((p_KeyPrefix == null ? "" : p_KeyPrefix)
+			    + p_Keys[i]));
+	}
+    }
+
+    /**
+     * Test GenericKey
+     */
+    @Test
+    public void testGenericKey() {
+	Cache<GenericKey, String> cache = new SimpleCache<GenericKey, String>();
+	GenericKey key12 = new GenericKey("1", "2");
+	GenericKey key123 = new GenericKey("1", "2", "3");
+	GenericKey key21 = new GenericKey("2", "1");
+
+	Assert.assertFalse(cache.containsKey(key12));
+	Assert.assertFalse(cache.containsKey(key123));
+	Assert.assertFalse(cache.containsKey(key21));
+
+	cache.put(key12, "v12");
+	Assert.assertTrue(cache.containsKey(key12));
+	Assert.assertFalse(cache.containsKey(key123));
+	Assert.assertFalse(cache.containsKey(key21));
+	Assert.assertTrue(cache.containsKey(new GenericKey("1", "2")));
+	Assert.assertFalse(cache.containsKey(new GenericKey("1", "2", "3")));
+	Assert.assertFalse(cache.containsKey(new GenericKey("2", "1")));
+
+	cache.put(key123, "v123");
+	Assert.assertTrue(cache.containsKey(new GenericKey("1", "2")));
+	Assert.assertTrue(cache.containsKey(new GenericKey("1", "2", "3")));
+	Assert.assertFalse(cache.containsKey(new GenericKey("2", "1")));
+
+	cache.put(key21, "v21");
+	Assert.assertTrue(cache.containsKey(new GenericKey("1", "2")));
+	Assert.assertTrue(cache.containsKey(new GenericKey("1", "2", "3")));
+	Assert.assertTrue(cache.containsKey(new GenericKey("2", "1")));
     }
 }

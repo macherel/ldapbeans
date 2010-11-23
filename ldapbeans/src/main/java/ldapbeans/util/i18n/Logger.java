@@ -68,6 +68,19 @@ public final class Logger {
     }
 
     /**
+     * Log a message object with the DEBUG Level.
+     * 
+     * @param p_Message
+     *            The message to log
+     */
+    public void debug(Message p_Message) {
+	if (m_Logger.isEnabledFor(Level.DEBUG)) {
+	    m_Logger.debug(convertMessage(p_Message));
+	}
+
+    }
+
+    /**
      * Log a message object with the INFO Level.
      * 
      * @param p_Message

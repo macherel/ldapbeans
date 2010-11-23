@@ -33,11 +33,11 @@
 	</appender>
 
 	<category name="ldapbeans">
-		<level value="WARN"></level>
+		<level value="ERROR"/>
 	</category>
 
 	<root>
-		<level value="WARN"></level>
+		<level value="ERROR"></level>
 		<appender-ref ref="asyncAppender" />
 	</root>
 </log4j:configuration>

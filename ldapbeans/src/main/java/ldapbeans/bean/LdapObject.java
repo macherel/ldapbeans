@@ -20,7 +20,9 @@
  */
 package ldapbeans.bean;
 
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.LdapContext;
@@ -174,5 +176,30 @@ public class LdapObject {
 	} finally {
 	    m_Pool.release(context);
 	}
+    }
+
+    @Override
+    public String toString() {
+	StringBuilder sb = new StringBuilder();
+	@SuppressWarnings("unchecked")
+	NamingEnumeration<Attribute> attributes = (NamingEnumeration<Attribute>) m_Attributes
+		.getAll();
+	Attribute attribute;
+	NamingEnumeration<Object> values;
+	Object value;
+	while (attributes.hasMoreElements()) {
+	    attribute = attributes.nextElement();
+	    try {
+		values = (NamingEnumeration<Object>) attribute.getAll();
+		while (values.hasMoreElements()) {
+		    value = values.nextElement();
+		    sb.append(attribute.getID()).append(": ")
+			    .append(value.toString()).append('\n');
+		}
+	    } catch (NamingException e) {
+		// Do nothing, skip this attribute
+	    }
+	}
+	return sb.toString();
     }
 }

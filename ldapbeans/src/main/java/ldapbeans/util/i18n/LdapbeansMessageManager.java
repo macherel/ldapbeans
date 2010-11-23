@@ -66,6 +66,21 @@ public final class LdapbeansMessageManager {
     }
 
     /**
+     * Return the message to use when trying to write generated class in a file
+     * 
+     * @param p_ClassName
+     *            The name of the class to serialize
+     * @param p_FileName
+     *            The name of the file
+     * @return The message to use when trying to write generated class in a file
+     */
+    public Message getGeneratedClassWriteMessage(String p_ClassName,
+	    String p_FileName) {
+	return new Message("ldapbeans.generated.class.write", p_ClassName,
+		p_FileName);
+    }
+
+    /**
      * Return the message to use when an error occurs when trying to write
      * generated class in a file
      * 
@@ -95,6 +110,19 @@ public final class LdapbeansMessageManager {
 	    Method p_Method) {
 	return new Message("ldapbeans.generated.class.error", p_ClassName,
 		p_Method);
+    }
+
+    /**
+     * Return the message to use if a method is generated
+     * 
+     * @param p_ClassName
+     *            The name of the generated class
+     * @param p_Method
+     *            The generated method
+     * @return The message to use if a method is already generated
+     */
+    public Message getGeneratedMethodMessage(String p_ClassName, Method p_Method) {
+	return new Message("ldapbeans.generated.method", p_ClassName, p_Method);
     }
 
     /**

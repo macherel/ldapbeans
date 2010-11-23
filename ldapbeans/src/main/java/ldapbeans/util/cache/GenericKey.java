@@ -20,6 +20,8 @@
  */
 package ldapbeans.util.cache;
 
+import java.util.Arrays;
+
 public class GenericKey {
     private final Object[] m_Keys;
 
@@ -38,7 +40,7 @@ public class GenericKey {
 
     @Override
     public int hashCode() {
-	int hash = super.hashCode();
+	int hash = 1;
 	if (m_Keys != null) {
 	    for (Object obj : m_Keys) {
 		hash = hash ^ 53 + obj.hashCode();
@@ -66,5 +68,15 @@ public class GenericKey {
 	    }
 	}
 	return equals;
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see Object#toString()
+     */
+    @Override
+    public String toString() {
+	return Arrays.asList(m_Keys).toString();
     }
 }

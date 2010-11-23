@@ -47,11 +47,6 @@ import org.junit.runner.RunWith;
  */
 @RunWith(FrameworkRunner.class)
 @CreateLdapServer(transports = { @CreateTransport(protocol = "LDAP", port = 10389) }, allowAnonymousAccess = true)
-// @ApplyLdifs({
-// // The added entry
-// "dn: cn=Kim Wilde,ou=system\n" + "objectClass: person\n" +
-// "objectClass: top\n"
-// + "cn: Kim Wilde\n" + "sn: Wilde\n\n" })
 @ApplyLdifFiles({ "ldapbeans.ldif" })
 public class LdapBeanTest {
     public static DirectoryService service;
@@ -146,11 +141,14 @@ public class LdapBeanTest {
 	    // with 'foo' and 'bar' values
 	    // Otherwise 'cn' attribute contains onloy 'bar' value.
 	    person.restore();
-	    Assert.assertTrue("CN has to contain \"foo\" value", person
-		    .getCommonNames().contains("foo"));
-	    Assert.assertTrue("CN has to contain \"bar\" value", person
-		    .getCommonNames().contains("bar"));
-	    Assert.assertEquals("CN have to contain only 2 value", 2, person
+	    Assert.assertTrue("CN (" + person.getCommonNames()
+		    + ") has to contain \"foo\" value", person.getCommonNames()
+		    .contains("foo"));
+	    Assert.assertTrue("CN (" + person.getCommonNames()
+		    + ") has to contain \"bar\" value", person.getCommonNames()
+		    .contains("bar"));
+	    Assert.assertEquals("CN (" + person.getCommonNames()
+		    + ") have to contain only 2 value", 2, person
 		    .getCommonNames().size());
 	} catch (Exception e) {
 	    // Common name does not correspond to dn
@@ -354,8 +352,8 @@ public class LdapBeanTest {
 	Assert.assertEquals(Boolean.TRUE, bean.isOKTrueFalse());
 	try {
 	    Assert.assertEquals(Boolean.TRUE, bean.isOK01());
-	    Assert.fail("\"true\" could not be converted " +
-	    		"to boolean with this method");
+	    Assert.fail("\"true\" could not be converted "
+		    + "to boolean with this method");
 	} catch (IllegalArgumentException e) {
 	    // "true" could not be converted to boolean with this method
 	}
@@ -438,6 +436,76 @@ public class LdapBeanTest {
 	bean.restore();
 	Assert.assertEquals("24", bean.getDescription());
 	Assert.assertEquals(24, bean.getCount());
+    }
+
+    /**
+     * Test for getter when it returns LdapBean type
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testLdapBeanGetterByDn() throws Exception {
+	Person parent = (Person) s_Manager.findByDn("cn=parent,ou=system");
+	Assert.assertNotNull("cn=parent,ou=system should exist", parent);
+
+	Person child = parent.getOtherPersonByDn();
+	Assert.assertNotNull("cn=child,ou=system should exist", child);
+	Assert.assertEquals("child", child.getSurname());
+
+	child = parent.getOtherPersonBySimpleSearch();
+	Assert.assertNull(child);
+
+	child = parent.getOtherPersonByRegexpSearch();
+	Assert.assertNull(child);
+    }
+
+    /**
+     * Test for getter when it returns LdapBean type
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testLdapBeanGetterBySimpleSeach() throws Exception {
+	Person parent = (Person) s_Manager
+		.findByDn("cn=parent_simple_search,ou=system");
+	Assert.assertNotNull("cn=parent_simple_search,ou=system should exist",
+		parent);
+
+	Person child = parent.getOtherPersonByDn();
+	Assert.assertNull(child);
+
+	child = parent.getOtherPersonBySimpleSearch();
+	Assert.assertNotNull("cn=child,ou=system should exist", child);
+	Assert.assertEquals("child", child.getSurname());
+
+	child = parent.getOtherPersonByRegexpSearch();
+	Assert.assertNull(child);
+    }
+
+    /**
+     * Test for getter when it returns LdapBean type
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testLdapBeanGetterByRegexpSearch() throws Exception {
+	Person parent = (Person) s_Manager
+		.findByDn("cn=parent_regexp_search,ou=system");
+	Assert.assertNotNull("cn=parent_regexp_search,ou=system should exist",
+		parent);
+
+	Person child = parent.getOtherPersonByDn();
+	Assert.assertNull(child);
+
+	child = parent.getOtherPersonBySimpleSearch();
+	Assert.assertNull(child);
+
+	child = parent.getOtherPersonByRegexpSearch();
+	Assert.assertNotNull("cn=child,ou=system should exist", child);
+	Assert.assertEquals("child", child.getSurname());
     }
 
 }

@@ -338,6 +338,43 @@ public final class LdapBeanManager {
     }
 
     /**
+     * Find the fist bean corresponding to the search
+     * 
+     * @param p_LdapSearch
+     *            The LDAP search
+     * @return the first bean corresponding to the LDAP search
+     */
+    public Object searchFirst(String p_LdapSearch) {
+	return searchFirst(null, p_LdapSearch);
+    }
+
+    /**
+     * Find the fist bean corresponding to the search
+     * 
+     * @param <T>
+     *            The type of the bean
+     * @param p_Class
+     *            The interface that the bean have to implement
+     * @param p_LdapSearch
+     *            The LDAP search
+     * @return The first bean corresponding to the LDAP search
+     */
+    public <T extends LdapBean> T searchFirst(Class<T> p_Class,
+	    String p_LdapSearch) {
+	T result = null;
+	LdapObject ldapObject;
+	try {
+	    ldapObject = m_LdapObjectManager.searchFirst(p_LdapSearch);
+	    if (ldapObject != null) {
+		result = createInstance(p_Class, ldapObject);
+	    }
+	} catch (NamingException e) {
+	    // Nothing to do
+	}
+	return result;
+    }
+
+    /**
      * Create new instance of {@link LdapBean}
      * 
      * @param <T>
@@ -365,7 +402,7 @@ public final class LdapBeanManager {
 		attributes = p_LdapObject.getAttributes();
 		classes = LdapBeanHelper.getInstance().getClasses(attributes);
 	    }
-	    // Create a dynamic implementation (a proxy) of the bean
+	    // Create a dynamic implementation of the bean
 	    bean = (T) createInstance(classes, p_LdapObject);
 	} else {
 	    bean = null;
@@ -398,9 +435,9 @@ public final class LdapBeanManager {
 		return (T) LdapBeanClassManager
 			.getInstance()
 			.getClass(p_Classes)
-			.getConstructor(LdapObject.class,
-				LdapObjectManager.class)
-			.newInstance(p_LdapObject, m_LdapObjectManager);
+			.getConstructor(LdapBeanManager.class,
+				LdapObjectManager.class, LdapObject.class)
+			.newInstance(this, m_LdapObjectManager, p_LdapObject);
 	    } catch (Exception e) {
 		LOG.error(MESSAGE.getLdapBeanCreationErrorMessage(), e);
 		return null;

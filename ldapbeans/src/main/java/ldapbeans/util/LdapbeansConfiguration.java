@@ -41,6 +41,12 @@ public final class LdapbeansConfiguration implements
      */
     private final static String PROPERTY_USE_PROXY_BEAN = "ldapbeans.use.proxy.bean";
 
+    /**
+     * Name of the property that have to be set if generated class have to
+     * contains line number debug information
+     */
+    private final static String PROPERTY_DEBUG_LINE_NUMBER_ENABLED = "ldapbeans.debug.line.number.enabled";
+
     /** Singleton instance of this class */
     private final static LdapbeansConfiguration INSTANCE = new LdapbeansConfiguration();
 
@@ -75,6 +81,12 @@ public final class LdapbeansConfiguration implements
     private boolean m_UseProxyBean;
 
     /**
+     * Flag that indicate if generated classes have to contains line number for
+     * debug
+     */
+    private final boolean m_IsDebugLineNumberEnabled;
+
+    /**
      * Create a new configuration
      */
     private LdapbeansConfiguration() {
@@ -83,6 +95,8 @@ public final class LdapbeansConfiguration implements
 	m_CacheImplementationClassName = System
 		.getProperty(PROPERTY_CACHE_CLASS_IMPLEMENTATION);
 	m_UseProxyBean = System.getProperty(PROPERTY_USE_PROXY_BEAN) != null;
+	m_IsDebugLineNumberEnabled = System
+		.getProperty(PROPERTY_DEBUG_LINE_NUMBER_ENABLED) != null;
     }
 
     /*
@@ -132,5 +146,9 @@ public final class LdapbeansConfiguration implements
      */
     public void setUseProxyBean(boolean p_UseProxyBean) {
 	m_UseProxyBean = p_UseProxyBean;
+    }
+
+    public boolean isDebugLineNumberEnabled() {
+	return m_IsDebugLineNumberEnabled;
     }
 }

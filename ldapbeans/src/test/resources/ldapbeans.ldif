@@ -4,3 +4,32 @@ objectClass: top
 cn: Kim Wilde
 sn: Wilde
 
+dn: cn=parent,ou=system
+objectClass: person
+objectClass: top
+cn: parent
+sn: parent
+description: cn=child,ou=system
+
+dn: cn=parent_simple_search,ou=system
+objectClass: person
+objectClass: top
+cn: simple_parent
+sn: simple_parent
+description: child
+
+dn: cn=parent_regexp_search,ou=system
+objectClass: person
+objectClass: top
+cn: parent_regexp_search
+sn: parent_regexp_search
+description: |child|
+
+dn: cn=child,ou=system
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+uid: child
+cn: child
+sn: child
+

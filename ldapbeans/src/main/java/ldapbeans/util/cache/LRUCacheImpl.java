@@ -20,8 +20,10 @@
  */
 package ldapbeans.util.cache;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Set;
 
 public class LRUCacheImpl<K, V> extends AbstractCache<K, V> implements
 	LRUCache<K, V> {
@@ -170,6 +172,19 @@ public class LRUCacheImpl<K, V> extends AbstractCache<K, V> implements
     @Override
     public int size() {
 	return m_Cache.size();
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see Cache#keySet()
+     */
+    public Set<K> keySet() {
+	Set<K> keySet = new HashSet<K>();
+	for (CacheEntry<K, V> entry : m_Cache) {
+	    keySet.add(entry.getKey());
+	}
+	return keySet;
     }
 
     /**

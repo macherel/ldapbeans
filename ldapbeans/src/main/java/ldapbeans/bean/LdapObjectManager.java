@@ -176,11 +176,7 @@ public class LdapObjectManager {
      *             If an error occurs
      */
     public LdapObject getLdapObjectByUid(String p_Uid) throws NamingException {
-	LdapObject result = null;
-	List<LdapObject> ldapObjects = search("(uid=" + p_Uid + ")");
-	if (ldapObjects.size() > 0) {
-	    result = ldapObjects.get(0);
-	}
+	LdapObject result = searchFirst("(uid=" + p_Uid + ")");
 	return result;
     }
 
@@ -212,6 +208,43 @@ public class LdapObjectManager {
 		    dn = searchResult.getNameInNamespace();
 		    attributes = searchResult.getAttributes();
 		    result.add(getLdapObject(dn, attributes));
+		}
+	    }
+	} finally {
+	    m_Pool.release(context);
+	}
+	return result;
+    }
+
+    /**
+     * Search the first occurrence of LDAP object
+     * 
+     * @param p_LdapSearch
+     *            The LDAP search
+     * @return The first occurrence of {@link LdapObject} corresponding to the
+     *         LDAP search
+     * @throws NamingException
+     *             If an error occurs
+     */
+    public LdapObject searchFirst(String p_LdapSearch) throws NamingException {
+	LdapObject result = null;
+	Attributes attributes = null;
+	LdapContext context = null;
+	SearchControls searchControls = new SearchControls();
+	NamingEnumeration<SearchResult> namingEnumeration;
+	String dn = null;
+	try {
+	    context = m_Pool.acquire();
+	    searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+	    namingEnumeration = context.search(m_Root, p_LdapSearch,
+		    searchControls);
+	    if ((namingEnumeration != null)
+		    && (namingEnumeration.hasMoreElements())) {
+		SearchResult searchResult = namingEnumeration.nextElement();
+		if (searchResult != null) {
+		    dn = searchResult.getNameInNamespace();
+		    attributes = searchResult.getAttributes();
+		    result = getLdapObject(dn, attributes);
 		}
 	    }
 	} finally {

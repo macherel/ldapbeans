@@ -20,12 +20,12 @@
  */
 package ldapbeans.util.i18n;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import ldapbeans.util.StringUtil;
 
 public final class MessageManager {
 
@@ -89,26 +89,8 @@ public final class MessageManager {
      */
     public String getMessage(String p_Key, Object... p_Params) {
 	String message;
-	ArrayList<Object> params = new ArrayList<Object>();
-
 	message = m_ResourceBundle.getString(p_Key);
-
-	Matcher matcher = PATTERN.matcher(message);
-	int index = 0;
-	int i = -1;
-	while (matcher.find(index)) {
-	    i = Integer.parseInt(matcher.group().substring(1));
-	    params.add(p_Params[i - 1]);
-	    index = matcher.end();
-	}
-
-	// Replace every "$i" with "%s"
-	matcher.reset();
-	message = matcher.replaceAll("%s");
-
-	// Replace every "%s" with parameters
-	message = String.format(message, params.toArray());
-
+	message = StringUtil.format(message, p_Params);
 	// Return formatted message
 	return message;
     }

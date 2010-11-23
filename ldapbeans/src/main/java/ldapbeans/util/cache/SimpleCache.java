@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class SimpleCache<K, V> extends AbstractCache<K, V> {
     private static class SimpleCacheEntry<K, V> implements CacheEntry<K, V> {
@@ -148,6 +149,15 @@ public class SimpleCache<K, V> extends AbstractCache<K, V> {
      */
     public Iterator<CacheEntry<K, V>> iterator() {
 	return new SimpleCacheIterator<K, V>(m_Cache.entrySet().iterator());
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see Cache#keySet()
+     */
+    public Set<K> keySet() {
+	return m_Cache.keySet();
     }
 
     @Override

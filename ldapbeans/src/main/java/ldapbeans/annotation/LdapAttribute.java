@@ -38,4 +38,19 @@ public @interface LdapAttribute {
 
     /** Value mapping for "false" boolean value */
     String[] falseValue() default { "false", "0" };
+
+    /**
+     * describe the ldap search when this attribute correspond to another
+     * LdapBean
+     */
+    String search() default "";
+
+    /**
+     * RegExp that will be used to find parameters to replace in the LDAP search
+     * filter
+     */
+    String searchRegexp() default "";
+
+    /** ComponentType of collection used to convert ldap attribute element */
+    Class<?> componentType() default String.class;
 }

@@ -21,8 +21,10 @@
 package ldapbeans.util.cache;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
 	CommitableCache<K, V> {
@@ -41,15 +43,13 @@ public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
 	if (null == value) {
 	    tmp = m_PrimaryCache.get(p_Key);
 	    if (null != tmp) {
-		// try
-		{
-		    // FIXME: value = (V) tmp.clone();
-		    m_SecondaryCache.put(p_Key, value);
-		}
-		// catch (CloneNotSupportedException e)
-		{
-		    // e.printStackTrace();
-		}
+		// try {
+		value = tmp;
+		// FIXME: value = (V) tmp.clone();
+		m_SecondaryCache.put(p_Key, value);
+		// } catch (CloneNotSupportedException e) {
+		// e.printStackTrace();
+		// }
 	    }
 	}
 	return value;
@@ -145,10 +145,12 @@ public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
     /**
      * {@inheritDoc}
      * 
-     * @see Cache#size()
+     * @see Cache#keySet()
      */
-    @Override
-    public int size() {
-	return m_PrimaryCache.size() + m_SecondaryCache.size();
+    public Set<K> keySet() {
+	Set<K> keySet = new HashSet<K>(m_SecondaryCache.keySet());
+	keySet.addAll(m_PrimaryCache.keySet());
+	return keySet;
     }
+
 }

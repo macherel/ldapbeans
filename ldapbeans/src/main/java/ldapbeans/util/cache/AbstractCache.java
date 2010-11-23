@@ -112,4 +112,14 @@ public abstract class AbstractCache<K, V> extends
 	return modified;
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * @see Cache#size()
+     */
+    @Override
+    public int size() {
+	return keySet().size();
+    }
+
 }

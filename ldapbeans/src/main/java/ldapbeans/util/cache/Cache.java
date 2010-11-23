@@ -21,6 +21,7 @@
 package ldapbeans.util.cache;
 
 import java.util.Collection;
+import java.util.Set;
 
 import ldapbeans.util.cache.Cache.CacheEntry;
 
@@ -93,4 +94,11 @@ public interface Cache<K, V> extends Collection<CacheEntry<K, V>> {
      *            the cache to copy
      */
     void putAll(Cache<K, V> p_Cache);
+
+    /**
+     * Return the set of used keys
+     * 
+     * @return The set of used keys
+     */
+    Set<K> keySet();
 }

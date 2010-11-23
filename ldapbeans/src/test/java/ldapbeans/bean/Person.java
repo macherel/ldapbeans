@@ -120,4 +120,28 @@ public interface Person extends LdapBean {
      */
     @LdapAttribute("__DOES_NOT_EXIST_ERROR__")
     Object getErreur();
+
+    /**
+     * Return another Person
+     * 
+     * @return Another Person
+     */
+    @LdapAttribute("description")
+    Person getOtherPersonByDn();
+
+    /**
+     * Return another Person
+     * 
+     * @return Another Person
+     */
+    @LdapAttribute(value = "description", search = "(uid=$0)")
+    Person getOtherPersonBySimpleSearch();
+
+    /**
+     * Return another Person
+     * 
+     * @return Another Person
+     */
+    @LdapAttribute(value = "description", search = "(uid=$0)", searchRegexp = "^\\W+(\\w*)\\W+$")
+    Person getOtherPersonByRegexpSearch();
 }
