@@ -83,6 +83,19 @@ public final class LdapBeanManager {
 	return instance;
     }
 
+    /**
+     * Return an instance of {@link LdapBeanManager}.
+     * 
+     * @param p_Url
+     *            Url Of Ldap directory
+     * @param p_Root
+     *            Root dn of the directory
+     * @return An instance of {@link LdapBeanManager}
+     */
+    public static LdapBeanManager getInstance(String p_Url, String p_Root) {
+	return getInstance(p_Url, p_Root, null, null);
+    }
+
     /** Ldap helper */
     private final LdapObjectManager m_LdapObjectManager;
     /** Pool of {@link LdapContext} */
