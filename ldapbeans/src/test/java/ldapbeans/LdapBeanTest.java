@@ -24,7 +24,7 @@ import javax.naming.directory.SchemaViolationException;
 
 import junit.framework.Assert;
 import ldapbeans.bean.BeanForBooleanTest;
-import ldapbeans.bean.BeanForIntegerTest;
+import ldapbeans.bean.BeanForNumberTest;
 import ldapbeans.bean.LdapBean;
 import ldapbeans.bean.LdapBeanHelper;
 import ldapbeans.bean.LdapBeanManager;
@@ -422,20 +422,189 @@ public class LdapBeanTest {
      *             If an error occurs
      */
     @Test
-    public void testIntegerGetter() throws Exception {
-	BeanForIntegerTest bean = s_Manager.create(BeanForIntegerTest.class,
+    public void testByte() throws Exception {
+	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
 		"ou=foo,ou=system");
 	bean.setDescription("42");
 	bean.store();
 	bean.restore();
 	Assert.assertEquals("42", bean.getDescription());
-	Assert.assertEquals(42, bean.getCount());
+	Assert.assertEquals(42, bean.getByteP());
+	Assert.assertEquals(42, bean.getByte().byteValue());
 
-	bean.setCount(24);
+	bean.setByteP(24);
 	bean.store();
 	bean.restore();
 	Assert.assertEquals("24", bean.getDescription());
-	Assert.assertEquals(24, bean.getCount());
+	Assert.assertEquals(24, bean.getByteP());
+	Assert.assertEquals(24, bean.getByte().byteValue());
+
+	bean.setByte(Byte.valueOf("22"));
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("22", bean.getDescription());
+	Assert.assertEquals(22, bean.getByteP());
+	Assert.assertEquals(22, bean.getByte().byteValue());
+    }
+
+    /**
+     * Test for getter and setter call
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testShort() throws Exception {
+	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
+		"ou=foo,ou=system");
+	bean.setDescription("42");
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("42", bean.getDescription());
+	Assert.assertEquals(42, bean.getShortP());
+	Assert.assertEquals(42, bean.getShort().byteValue());
+
+	bean.setShortP((short) 24);
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("24", bean.getDescription());
+	Assert.assertEquals(24, bean.getShortP());
+	Assert.assertEquals(24, bean.getShort().byteValue());
+
+	bean.setShort(Short.valueOf("22"));
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("22", bean.getDescription());
+	Assert.assertEquals(22, bean.getShortP());
+	Assert.assertEquals(22, bean.getShort().shortValue());
+    }
+
+    /**
+     * Test for getter and setter call
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testInteger() throws Exception {
+	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
+		"ou=foo,ou=system");
+	bean.setDescription("42");
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("42", bean.getDescription());
+	Assert.assertEquals(42, bean.getInt());
+	Assert.assertEquals(42, bean.getInteger().intValue());
+
+	bean.setInt(24);
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("24", bean.getDescription());
+	Assert.assertEquals(24, bean.getInt());
+	Assert.assertEquals(24, bean.getInteger().intValue());
+
+	bean.setInteger(Integer.valueOf("22"));
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("22", bean.getDescription());
+	Assert.assertEquals(22, bean.getInt());
+	Assert.assertEquals(22, bean.getInteger().intValue());
+    }
+
+    /**
+     * Test for getter and setter call
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testLong() throws Exception {
+	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
+		"ou=foo,ou=system");
+	bean.setDescription("42");
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("42", bean.getDescription());
+	Assert.assertEquals(42, bean.getLongP());
+	Assert.assertEquals(42, bean.getLong().longValue());
+
+	bean.setLongP(24);
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("24", bean.getDescription());
+	Assert.assertEquals(24, bean.getLongP());
+	Assert.assertEquals(24, bean.getLong().longValue());
+
+	bean.setLong(Long.valueOf("22"));
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("22", bean.getDescription());
+	Assert.assertEquals(22, bean.getLongP());
+	Assert.assertEquals(22, bean.getLong().longValue());
+    }
+
+    /**
+     * Test for getter and setter call
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testFloat() throws Exception {
+	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
+		"ou=foo,ou=system");
+	bean.setDescription("42");
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("42", bean.getDescription());
+	Assert.assertEquals(42.0f, bean.getFloatP(), 0.01f);
+	Assert.assertEquals(42.0f, bean.getFloat().floatValue(), 0.01f);
+
+	bean.setFloatP(24.0f);
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("24.0", bean.getDescription());
+	Assert.assertEquals(24.0f, bean.getFloatP(), 0.01);
+	Assert.assertEquals(24.0f, bean.getFloat().floatValue(), 0.01);
+
+	bean.setFloat(Float.valueOf("22"));
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("22.0", bean.getDescription());
+	Assert.assertEquals(22.0f, bean.getFloatP(), 0.01f);
+	Assert.assertEquals(22.0f, bean.getFloat().floatValue(), 0.01f);
+    }
+
+    /**
+     * Test for getter and setter call
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testDouble() throws Exception {
+	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
+		"ou=foo,ou=system");
+	bean.setDescription("42");
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("42", bean.getDescription());
+	Assert.assertEquals(42.0d, bean.getDoubleP(), 0.01d);
+	Assert.assertEquals(42.0d, bean.getDouble().doubleValue(), 0.01d);
+
+	bean.setDoubleP(24.0d);
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("24.0", bean.getDescription());
+	Assert.assertEquals(24.0d, bean.getDoubleP(), 0.01d);
+	Assert.assertEquals(24.0d, bean.getDouble().doubleValue(), 0.01d);
+
+	bean.setDouble(Double.valueOf("22"));
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("22.0", bean.getDescription());
+	Assert.assertEquals(22.0d, bean.getDoubleP(), 0.01d);
+	Assert.assertEquals(22.0d, bean.getDouble().doubleValue(), 0.01d);
     }
 
     /**

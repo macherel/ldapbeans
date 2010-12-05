@@ -32,7 +32,12 @@ import static org.objectweb.asm.Opcodes.ANEWARRAY;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.ATHROW;
+import static org.objectweb.asm.Opcodes.DLOAD;
+import static org.objectweb.asm.Opcodes.DSTORE;
 import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.FCONST_0;
+import static org.objectweb.asm.Opcodes.FLOAD;
+import static org.objectweb.asm.Opcodes.FSTORE;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.GOTO;
@@ -49,6 +54,9 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.ISTORE;
+import static org.objectweb.asm.Opcodes.LCONST_0;
+import static org.objectweb.asm.Opcodes.LLOAD;
+import static org.objectweb.asm.Opcodes.LSTORE;
 import static org.objectweb.asm.Opcodes.NEW;
 import static org.objectweb.asm.Opcodes.POP;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
@@ -624,16 +632,16 @@ public final class LdapBeanClassManager {
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObject",
 		"getAttributes", "()Ljavax/naming/directory/Attributes;");
-	mv.visitVarInsn(ASTORE, 2);
+	mv.visitVarInsn(ASTORE, 3);
 	// Attribute attribute = attributes.get("attributeName");
-	mv.visitVarInsn(ALOAD, 2);
+	mv.visitVarInsn(ALOAD, 3);
 	mv.visitLdcInsn(attributeName);
 	mv.visitMethodInsn(INVOKEINTERFACE,
 		"javax/naming/directory/Attributes", "get",
 		"(Ljava/lang/String;)Ljavax/naming/directory/Attribute;");
-	mv.visitVarInsn(ASTORE, 3);
+	mv.visitVarInsn(ASTORE, 4);
 	// if (attribute == null) {
-	mv.visitVarInsn(ALOAD, 3);
+	mv.visitVarInsn(ALOAD, 4);
 	Label l0 = new Label();
 	mv.visitJumpInsn(IFNONNULL, l0);
 	// attribute = new BasicAttribute("attributeName");
@@ -643,10 +651,10 @@ public final class LdapBeanClassManager {
 	mv.visitMethodInsn(INVOKESPECIAL,
 		"javax/naming/directory/BasicAttribute", "<init>",
 		"(Ljava/lang/String;)V");
-	mv.visitVarInsn(ASTORE, 3);
+	mv.visitVarInsn(ASTORE, 4);
 	// attributes.put(attribute);
-	mv.visitVarInsn(ALOAD, 2);
 	mv.visitVarInsn(ALOAD, 3);
+	mv.visitVarInsn(ALOAD, 4);
 	mv.visitMethodInsn(INVOKEINTERFACE,
 		"javax/naming/directory/Attributes", "put",
 		"(Ljavax/naming/directory/Attribute;)"
@@ -662,7 +670,7 @@ public final class LdapBeanClassManager {
 	    mv.visitJumpInsn(GOTO, l1);
 	    mv.visitLabel(l0);
 	    // attribute.clear();
-	    mv.visitVarInsn(ALOAD, 3);
+	    mv.visitVarInsn(ALOAD, 4);
 	    mv.visitMethodInsn(INVOKEINTERFACE,
 		    "javax/naming/directory/Attribute", "clear", "()V");
 	    // }
@@ -695,24 +703,24 @@ public final class LdapBeanClassManager {
 	    mv.visitVarInsn(ALOAD, 1);
 	    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Collection",
 		    "iterator", "()Ljava/util/Iterator;");
-	    mv.visitVarInsn(ASTORE, 5);
+	    mv.visitVarInsn(ASTORE, 6);
 	    // while(it.hasNext()) {
 	    Label l2 = new Label();
 	    mv.visitLabel(l2);
-	    mv.visitVarInsn(ALOAD, 5);
+	    mv.visitVarInsn(ALOAD, 6);
 	    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator",
 		    "hasNext", "()Z");
 	    Label l3 = new Label();
 	    mv.visitJumpInsn(IFEQ, l3);
 
 	    // String value = (String) it.next();
-	    mv.visitVarInsn(ALOAD, 5);
+	    mv.visitVarInsn(ALOAD, 6);
 	    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next",
 		    "()Ljava/lang/Object;");
-	    mv.visitVarInsn(ASTORE, 4);
+	    mv.visitVarInsn(ASTORE, 5);
 	    // attribute.add(value);
-	    mv.visitVarInsn(ALOAD, 3);
 	    mv.visitVarInsn(ALOAD, 4);
+	    mv.visitVarInsn(ALOAD, 5);
 	    mv.visitMethodInsn(INVOKEINTERFACE,
 		    "javax/naming/directory/Attribute", "add",
 		    "(Ljava/lang/Object;)Z");
@@ -724,8 +732,8 @@ public final class LdapBeanClassManager {
 	    generateMethodSetterAssignValueConvert(mv, p_LdapAttribute,
 		    p_ParameterTypes[0]);
 	    // attribute.add(value);
-	    mv.visitVarInsn(ALOAD, 3);
 	    mv.visitVarInsn(ALOAD, 4);
+	    mv.visitVarInsn(ALOAD, 5);
 	    mv.visitMethodInsn(INVOKEINTERFACE,
 		    "javax/naming/directory/Attribute", "add",
 		    "(Ljava/lang/Object;)Z");
@@ -753,15 +761,20 @@ public final class LdapBeanClassManager {
 	    // String value = p_AttributeValue?"true":"false";
 	    generateMethodSetterAssignValueConvertBoolean(p_MethodVisitor,
 		    p_LdapAttribute, p_OriginalType);
-	} else if ((Integer.class.equals(p_OriginalType) || int.class
-		.equals(p_OriginalType))) {
-	    // String value = String.valueOf((int)p_AttributeValue);
-	    generateMethodSetterAssignValueConvertInteger(p_MethodVisitor,
+	} else if (Number.class.isAssignableFrom(p_OriginalType)) {
+	    // String value = String.valueOf(p_AttributeValue);
+	    generateMethodSetterAssignValueConvertNumber(p_MethodVisitor,
 		    p_OriginalType);
+	} else if (p_OriginalType.isPrimitive()) {
+	    // String value = String.valueOf(p_AttributeValue);
+	    generateMethodSetterAssignValueConvertPrimitive(p_MethodVisitor,
+		    p_OriginalType);
+	    // mv.visitLdcInsn("FIXME");
+	    // mv.visitVarInsn(ASTORE, 5);
 	} else {
 	    // String value = p_AttributeValue;
 	    mv.visitVarInsn(ALOAD, 1);
-	    mv.visitVarInsn(ASTORE, 4);
+	    mv.visitVarInsn(ASTORE, 5);
 	}
     }
 
@@ -794,7 +807,7 @@ public final class LdapBeanClassManager {
 	mv.visitLabel(l2);
 	mv.visitLdcInsn(p_LdapAttribute.falseValue()[0]);
 	mv.visitLabel(l3);
-	mv.visitVarInsn(ASTORE, 4);
+	mv.visitVarInsn(ASTORE, 5);
     }
 
     /**
@@ -805,19 +818,45 @@ public final class LdapBeanClassManager {
      * @param p_OriginalType
      *            The type before conversion
      */
-    private void generateMethodSetterAssignValueConvertInteger(
+    private void generateMethodSetterAssignValueConvertNumber(
 	    MethodVisitor p_MethodVisitor, Class<?> p_OriginalType) {
 	MethodVisitor mv = p_MethodVisitor;
-	if (Integer.class.equals(p_OriginalType)) {
-	    mv.visitVarInsn(ALOAD, 1);
-	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Integer", "intValue",
-		    "()I");
+	mv.visitVarInsn(ALOAD, 1);
+	mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
+		"()Ljava/lang/String;");
+	mv.visitVarInsn(ASTORE, 5);
+    }
+
+    /**
+     * Generate a portion of a method of the generated class
+     * 
+     * @param p_MethodVisitor
+     *            The {@link MethodVisitor} of the generated method
+     * @param p_OriginalType
+     *            The type before conversion
+     */
+    private void generateMethodSetterAssignValueConvertPrimitive(
+	    MethodVisitor p_MethodVisitor, Class<?> p_OriginalType) {
+	MethodVisitor mv = p_MethodVisitor;
+	if (true == double.class.equals(p_OriginalType)) {
+	    mv.visitVarInsn(DLOAD, 1);
+	} else if (true == long.class.equals(p_OriginalType)) {
+	    mv.visitVarInsn(LLOAD, 1);
+	} else if (true == float.class.equals(p_OriginalType)) {
+	    mv.visitVarInsn(FLOAD, 1);
 	} else {
 	    mv.visitVarInsn(ILOAD, 1);
 	}
-	mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf",
-		"(I)Ljava/lang/String;");
-	mv.visitVarInsn(ASTORE, 4);
+	if (short.class.equals(p_OriginalType)) {
+	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Short", "toString",
+		    "(S)Ljava/lang/String;");
+	} else {
+	    Type type = Type.getType(p_OriginalType);
+
+	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf", "("
+		    + type.toString() + ")Ljava/lang/String;");
+	}
+	mv.visitVarInsn(ASTORE, 5);
     }
 
     /**
@@ -837,20 +876,24 @@ public final class LdapBeanClassManager {
 	    Class<?> p_ReturnType) {
 	MethodVisitor mv = p_MethodVisitor;
 	// Object result = null;
-	if ((true == boolean.class.equals(p_ReturnType))
-		|| (true == int.class.equals(p_ReturnType))) {
-	    mv.visitInsn(ICONST_0);
-	    mv.visitVarInsn(ISTORE, 1);
-	} else {
-	    mv.visitInsn(ACONST_NULL);
-	    mv.visitVarInsn(ASTORE, 1);
-	}
+	generateDefaultValue(p_MethodVisitor, p_ReturnType, 1);
 	generateMethodGetterLdapValue(mv, p_ClassName, p_LdapAttribute,
 		p_ReturnType);
 	if ((true == boolean.class.equals(p_ReturnType))
+		|| (true == byte.class.equals(p_ReturnType))
+		|| (true == short.class.equals(p_ReturnType))
 		|| (true == int.class.equals(p_ReturnType))) {
 	    mv.visitVarInsn(ILOAD, 1);
 	    mv.visitInsn(IRETURN);
+	} else if (long.class.equals(p_ReturnType)) {
+	    mv.visitVarInsn(LLOAD, 1);
+	    mv.visitInsn(Opcodes.LRETURN);
+	} else if (double.class.equals(p_ReturnType)) {
+	    mv.visitVarInsn(DLOAD, 1);
+	    mv.visitInsn(Opcodes.DRETURN);
+	} else if (float.class.equals(p_ReturnType)) {
+	    mv.visitVarInsn(FLOAD, 1);
+	    mv.visitInsn(Opcodes.FRETURN);
 	} else {
 	    // return result;
 	    mv.visitVarInsn(ALOAD, 1);
@@ -885,19 +928,19 @@ public final class LdapBeanClassManager {
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObject",
 		"getAttributes", "()Ljavax/naming/directory/Attributes;");
-	mv.visitVarInsn(ASTORE, 2);
+	mv.visitVarInsn(ASTORE, 3);
 	// Attribute attribute = attributes.get("attributeName");
-	mv.visitVarInsn(ALOAD, 2);
+	mv.visitVarInsn(ALOAD, 3);
 	mv.visitLdcInsn(attributeName);
 	mv.visitMethodInsn(INVOKEINTERFACE,
 		"javax/naming/directory/Attributes", "get",
 		"(Ljava/lang/String;)Ljavax/naming/directory/Attribute;");
-	mv.visitVarInsn(ASTORE, 3);
+	mv.visitVarInsn(ASTORE, 4);
 	// try {
 	mv.visitLabel(l0);
 	// if (attribute != null) {
 	Label l3 = new Label();
-	mv.visitVarInsn(ALOAD, 3);
+	mv.visitVarInsn(ALOAD, 4);
 	mv.visitJumpInsn(IFNULL, l3);
 	generateMethodGetterAssignResult(mv, p_ClassName, p_LdapAttribute,
 		p_ReturnType);
@@ -906,7 +949,11 @@ public final class LdapBeanClassManager {
 	mv.visitJumpInsn(GOTO, l3);
 	// } catch(NamingException e) {
 	mv.visitLabel(l2);
-	mv.visitVarInsn(ASTORE, 4);
+	mv.visitVarInsn(ASTORE, 5);
+	// throw new IllegalArgumentException()
+	// TODO: change the message
+	generateThrowingIllegalArgumentException(p_MethodVisitor,
+		"Error when trying to get value");
 	// }
 	mv.visitLabel(l3);
     }
@@ -956,12 +1003,12 @@ public final class LdapBeanClassManager {
 	    LdapAttribute p_LdapAttribute, Class<?> p_ReturnType) {
 	MethodVisitor mv = p_MethodVisitor;
 	// Object value = attribute.get();
-	mv.visitVarInsn(ALOAD, 3);
+	mv.visitVarInsn(ALOAD, 4);
 	mv.visitMethodInsn(INVOKEINTERFACE, "javax/naming/directory/Attribute",
 		"get", "()Ljava/lang/Object;");
-	mv.visitVarInsn(ASTORE, 4);
+	mv.visitVarInsn(ASTORE, 5);
 	generateConvert(p_MethodVisitor, p_ClassName, p_LdapAttribute,
-		p_ReturnType, 4, 1);
+		p_ReturnType, 5, 1);
     }
 
     /**
@@ -981,29 +1028,29 @@ public final class LdapBeanClassManager {
 	    LdapAttribute p_LdapAttribute, Class<?> p_ReturnType) {
 	MethodVisitor mv = p_MethodVisitor;
 	// NamingEnumeration<?> enumeration = attribute.getAll();
-	mv.visitVarInsn(ALOAD, 3);
+	mv.visitVarInsn(ALOAD, 4);
 	mv.visitMethodInsn(INVOKEINTERFACE, "javax/naming/directory/Attribute",
 		"getAll", "()Ljavax/naming/NamingEnumeration;");
-	mv.visitVarInsn(ASTORE, 4);
+	mv.visitVarInsn(ASTORE, 5);
 	// result = new [Collection](attribute.size());
 	generateMethodGetterInitializeResult(p_MethodVisitor, p_ReturnType);
 	// while (enumeration.hasMoreElements()) {
 	Label l4 = new Label();
 	mv.visitLabel(l4);
-	mv.visitVarInsn(ALOAD, 4);
+	mv.visitVarInsn(ALOAD, 5);
 	mv.visitMethodInsn(INVOKEINTERFACE, "javax/naming/NamingEnumeration",
 		"hasMoreElements", "()Z");
 	Label l5 = new Label();
 	mv.visitJumpInsn(IFEQ, l5);
 	// result.add(enumeration.nextElement());
-	mv.visitVarInsn(ALOAD, 4);
+	mv.visitVarInsn(ALOAD, 5);
 	mv.visitMethodInsn(INVOKEINTERFACE, "javax/naming/NamingEnumeration",
 		"nextElement", "()Ljava/lang/Object;");
-	mv.visitVarInsn(ASTORE, 5);
+	mv.visitVarInsn(ASTORE, 6);
 	generateConvert(p_MethodVisitor, p_ClassName, p_LdapAttribute,
-		p_LdapAttribute.componentType(), 5, 6);
+		p_LdapAttribute.componentType(), 6, 7);
 	mv.visitVarInsn(ALOAD, 1);
-	mv.visitVarInsn(ALOAD, 6);
+	mv.visitVarInsn(ALOAD, 7);
 	mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Collection", "add",
 		"(Ljava/lang/Object;)Z");
 	mv.visitInsn(POP);
@@ -1011,7 +1058,7 @@ public final class LdapBeanClassManager {
 	mv.visitJumpInsn(GOTO, l4);
 	mv.visitLabel(l5);
 	// enumeration.close();
-	mv.visitVarInsn(ALOAD, 4);
+	mv.visitVarInsn(ALOAD, 5);
 	mv.visitMethodInsn(INVOKEINTERFACE, "javax/naming/NamingEnumeration",
 		"close", "()V");
     }
@@ -1033,41 +1080,41 @@ public final class LdapBeanClassManager {
 	    LdapAttribute p_LdapAttribute, Class<?> p_ReturnType) {
 	MethodVisitor mv = p_MethodVisitor;
 	// NamingEnumeration<?> enumeration = attribute.getAll();
-	mv.visitVarInsn(ALOAD, 3);
+	mv.visitVarInsn(ALOAD, 4);
 	mv.visitMethodInsn(INVOKEINTERFACE, "javax/naming/directory/Attribute",
 		"getAll", "()Ljavax/naming/NamingEnumeration;");
-	mv.visitVarInsn(ASTORE, 4);
+	mv.visitVarInsn(ASTORE, 5);
 	// result = new Object[attribute.size()];
 	generateMethodGetterInitializeResult(p_MethodVisitor, p_ReturnType);
 	// int i = 0;
 	mv.visitInsn(ICONST_0);
-	mv.visitVarInsn(ISTORE, 5);
+	mv.visitVarInsn(ISTORE, 6);
 	// while (enumeration.hasMoreElements()) {
 	Label l4 = new Label();
 	mv.visitLabel(l4);
-	mv.visitVarInsn(ALOAD, 4);
+	mv.visitVarInsn(ALOAD, 5);
 	mv.visitMethodInsn(INVOKEINTERFACE, "javax/naming/NamingEnumeration",
 		"hasMoreElements", "()Z");
 	Label l5 = new Label();
 	mv.visitJumpInsn(IFEQ, l5);
 	// tmp = enumeration.nextElement();
-	mv.visitVarInsn(ALOAD, 4);
+	mv.visitVarInsn(ALOAD, 5);
 	mv.visitMethodInsn(INVOKEINTERFACE, "javax/naming/NamingEnumeration",
 		"nextElement", "()Ljava/lang/Object;");
-	mv.visitVarInsn(ASTORE, 6);
+	mv.visitVarInsn(ASTORE, 7);
 	generateConvert(p_MethodVisitor, p_ClassName, p_LdapAttribute,
-		p_ReturnType.getComponentType(), 6, 7);
+		p_ReturnType.getComponentType(), 7, 8);
 	// result[i++] = tmp;
 	mv.visitVarInsn(ALOAD, 1);
-	mv.visitVarInsn(ILOAD, 5);
-	mv.visitIincInsn(5, 1);
-	mv.visitVarInsn(ALOAD, 7);
+	mv.visitVarInsn(ILOAD, 6);
+	mv.visitIincInsn(6, 1);
+	mv.visitVarInsn(ALOAD, 8);
 	mv.visitInsn(AASTORE);
 	// }
 	mv.visitJumpInsn(GOTO, l4);
 	mv.visitLabel(l5);
 	// enumeration.close();
-	mv.visitVarInsn(ALOAD, 4);
+	mv.visitVarInsn(ALOAD, 5);
 	mv.visitMethodInsn(INVOKEINTERFACE, "javax/naming/NamingEnumeration",
 		"close", "()V");
     }
@@ -1085,7 +1132,7 @@ public final class LdapBeanClassManager {
 	MethodVisitor mv = p_MethodVisitor;
 	// result = new ArrayList<Object>(attribute.size());
 	if (p_ReturnType.isArray()) {
-	    mv.visitVarInsn(ALOAD, 3);
+	    mv.visitVarInsn(ALOAD, 4);
 	    mv.visitMethodInsn(INVOKEINTERFACE,
 		    "javax/naming/directory/Attribute", "size", "()I");
 	    mv.visitTypeInsn(ANEWARRAY, p_ReturnType.getComponentType()
@@ -1108,7 +1155,7 @@ public final class LdapBeanClassManager {
 	    }
 	    mv.visitTypeInsn(NEW, resultType);
 	    mv.visitInsn(DUP);
-	    mv.visitVarInsn(ALOAD, 3);
+	    mv.visitVarInsn(ALOAD, 4);
 	    mv.visitMethodInsn(INVOKEINTERFACE,
 		    "javax/naming/directory/Attribute", "size", "()I");
 	    mv.visitMethodInsn(INVOKESPECIAL, resultType, "<init>", "(I)V");
@@ -1153,8 +1200,11 @@ public final class LdapBeanClassManager {
 		    || Boolean.class.isAssignableFrom(p_ReturnType)) {
 		generateConvertToBoolean(p_MethodVisitor, p_ClassName,
 			p_LdapAttribute, p_ReturnType, p_Object, p_Result);
-	    } else if (int.class.isAssignableFrom(p_ReturnType)) {
-		generateConvertToInteger(p_MethodVisitor, p_ClassName,
+	    } else if (Number.class.isAssignableFrom(p_ReturnType)) {
+		generateConvertToNumber(p_MethodVisitor, p_ClassName,
+			p_LdapAttribute, p_ReturnType, p_Object, p_Result);
+	    } else if (p_ReturnType.isPrimitive()) {
+		generateConvertToPrimitive(p_MethodVisitor, p_ClassName,
 			p_LdapAttribute, p_ReturnType, p_Object, p_Result);
 	    } else {
 		mv.visitVarInsn(ALOAD, p_Object);
@@ -1164,19 +1214,80 @@ public final class LdapBeanClassManager {
 	    mv.visitJumpInsn(GOTO, l1);
 	    mv.visitLabel(l0);
 	    // result = null;
-	    if ((p_ReturnType != null) && (p_ReturnType.isPrimitive())) {
-		mv.visitInsn(ICONST_0);
-		mv.visitVarInsn(ISTORE, p_Result);
-	    } else {
-		mv.visitInsn(ACONST_NULL);
-		mv.visitVarInsn(ASTORE, p_Result);
-	    }
+	    generateDefaultValue(p_MethodVisitor, p_ReturnType, p_Result);
 	    // }
 	    mv.visitLabel(l1);
 	} else {
 	    generateConvertToLdapBean(p_MethodVisitor, p_ClassName,
 		    p_LdapAttribute, null, p_Object, p_Result);
 	}
+    }
+
+    /**
+     * Generate default value and store it.
+     * 
+     * @param p_MethodVisitor
+     *            The {@link MethodVisitor} of the generated method
+     * @param p_Type
+     *            The type of the default value to generate
+     * @param p_StackIndex
+     *            The index where the value will be stored
+     */
+    private void generateDefaultValue(MethodVisitor p_MethodVisitor,
+	    Class<?> p_Type, int p_StackIndex) {
+	MethodVisitor mv = p_MethodVisitor;
+	if (byte.class.equals(p_Type)) {
+	    mv.visitInsn(ICONST_0);
+	    mv.visitVarInsn(ISTORE, p_StackIndex);
+	} else if (short.class.equals(p_Type)) {
+	    mv.visitInsn(ICONST_0);
+	    mv.visitVarInsn(ISTORE, p_StackIndex);
+	} else if (int.class.equals(p_Type)) {
+	    mv.visitInsn(ICONST_0);
+	    mv.visitVarInsn(ISTORE, p_StackIndex);
+	} else if (long.class.equals(p_Type)) {
+	    mv.visitInsn(LCONST_0);
+	    mv.visitVarInsn(LSTORE, p_StackIndex);
+	} else if (float.class.equals(p_Type)) {
+	    mv.visitInsn(FCONST_0);
+	    mv.visitVarInsn(FSTORE, p_StackIndex);
+	} else if (double.class.equals(p_Type)) {
+	    mv.visitInsn(Opcodes.DCONST_0);
+	    mv.visitVarInsn(DSTORE, p_StackIndex);
+	} else if (boolean.class.equals(p_Type)) {
+	    mv.visitInsn(Opcodes.ICONST_0);
+	    mv.visitVarInsn(ISTORE, p_StackIndex);
+	} else {
+	    mv.visitInsn(ACONST_NULL);
+	    mv.visitVarInsn(ASTORE, p_StackIndex);
+	}
+
+    }
+
+    /**
+     * Generate code throwing {@link IllegalArgumentException}
+     * 
+     * @param p_MethodVisitor
+     *            The {@link MethodVisitor} of the generated method
+     * @param p_Message
+     *            The message of the exception, or <code>null</code> if none
+     */
+    private void generateThrowingIllegalArgumentException(
+	    MethodVisitor p_MethodVisitor, String p_Message) {
+	MethodVisitor mv = p_MethodVisitor;
+	mv.visitTypeInsn(NEW, "java/lang/IllegalArgumentException");
+	mv.visitInsn(DUP);
+	if (p_Message != null) {
+	    mv.visitLdcInsn(p_Message);
+	    mv.visitMethodInsn(INVOKESPECIAL,
+		    "java/lang/IllegalArgumentException", "<init>",
+		    "(Ljava/lang/String;)V");
+	} else {
+	    mv.visitMethodInsn(INVOKESPECIAL,
+		    "java/lang/IllegalArgumentException", "<init>", "()V");
+	}
+	mv.visitInsn(ATHROW);
+
     }
 
     /**
@@ -1290,8 +1401,7 @@ public final class LdapBeanClassManager {
     }
 
     /**
-     * Generate code to convert ldapAttribute witch is on the to of the stack to
-     * Boolean
+     * Generate code to convert ldapAttribute to primitive type
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
@@ -1306,16 +1416,91 @@ public final class LdapBeanClassManager {
      * @param p_Result
      *            Index of the converted object on the stack
      */
-    private void generateConvertToInteger(MethodVisitor p_MethodVisitor,
+    private void generateConvertToPrimitive(MethodVisitor p_MethodVisitor,
 	    String p_ClassName, LdapAttribute p_LdapAttribute,
 	    Class<?> p_ReturnType, int p_Object, int p_Result) {
 	MethodVisitor mv = p_MethodVisitor;
-	mv.visitVarInsn(ALOAD, p_Object);
-	mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
-		"()Ljava/lang/String;");
-	mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "parseInt",
-		"(Ljava/lang/String;)I");
-	mv.visitVarInsn(ISTORE, p_Result);
+	if (byte.class.equals(p_ReturnType)) {
+	    // result = Integer.parseInt(object.toString());
+	    mv.visitVarInsn(ALOAD, p_Object);
+	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
+		    "()Ljava/lang/String;");
+	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Byte", "parseByte",
+		    "(Ljava/lang/String;)B");
+	    mv.visitVarInsn(ISTORE, p_Result);
+	} else if (short.class.equals(p_ReturnType)) {
+	    // result = Integer.parseInt(object.toString());
+	    mv.visitVarInsn(ALOAD, p_Object);
+	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
+		    "()Ljava/lang/String;");
+	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Short", "parseShort",
+		    "(Ljava/lang/String;)S");
+	    mv.visitVarInsn(ISTORE, p_Result);
+	} else if (int.class.equals(p_ReturnType)) {
+	    // result = Integer.parseInt(object.toString());
+	    mv.visitVarInsn(ALOAD, p_Object);
+	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
+		    "()Ljava/lang/String;");
+	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "parseInt",
+		    "(Ljava/lang/String;)I");
+	    mv.visitVarInsn(ISTORE, p_Result);
+	} else if (long.class.equals(p_ReturnType)) {
+	    // result = Integer.parseInt(object.toString());
+	    mv.visitVarInsn(ALOAD, p_Object);
+	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
+		    "()Ljava/lang/String;");
+	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Long", "parseLong",
+		    "(Ljava/lang/String;)J");
+	    mv.visitVarInsn(LSTORE, p_Result);
+	} else if (float.class.equals(p_ReturnType)) {
+	    // result = Integer.parseInt(object.toString());
+	    mv.visitVarInsn(ALOAD, p_Object);
+	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
+		    "()Ljava/lang/String;");
+	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Float", "parseFloat",
+		    "(Ljava/lang/String;)F");
+	    mv.visitVarInsn(FSTORE, p_Result);
+	} else if (double.class.equals(p_ReturnType)) {
+	    // result = Integer.parseInt(object.toString());
+	    mv.visitVarInsn(ALOAD, p_Object);
+	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
+		    "()Ljava/lang/String;");
+	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "parseDouble",
+		    "(Ljava/lang/String;)D");
+	    mv.visitVarInsn(DSTORE, p_Result);
+	}
+    }
+
+    /**
+     * Generate code to convert ldapAttribute to primitive type
+     * 
+     * @param p_MethodVisitor
+     *            The {@link MethodVisitor} of the generated method
+     * @param p_ClassName
+     *            Name of the generated class
+     * @param p_LdapAttribute
+     *            The LdapAttribute that will be used for generating the method
+     * @param p_ReturnType
+     *            The type of the result
+     * @param p_Object
+     *            Index of the object to convert on the stack
+     * @param p_Result
+     *            Index of the converted object on the stack
+     */
+    private void generateConvertToNumber(MethodVisitor p_MethodVisitor,
+	    String p_ClassName, LdapAttribute p_LdapAttribute,
+	    Class<?> p_ReturnType, int p_Object, int p_Result) {
+	MethodVisitor mv = p_MethodVisitor;
+	if (Number.class.isAssignableFrom(p_ReturnType)) {
+	    // result = Integer.parseInt(object.toString());
+	    String returnTypeInternalName = Type.getInternalName(p_ReturnType);
+	    mv.visitVarInsn(ALOAD, p_Object);
+	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
+		    "()Ljava/lang/String;");
+	    mv.visitMethodInsn(INVOKESTATIC, returnTypeInternalName, "valueOf",
+		    "(Ljava/lang/String;)L" + returnTypeInternalName + ';');
+	    mv.visitVarInsn(ASTORE, p_Result);
+	}
     }
 
     /**
@@ -1455,5 +1640,15 @@ public final class LdapBeanClassManager {
 	    result.append(clazz.getName()).append(' ');
 	}
 	return result.toString();
+    }
+
+    public static interface TestClass extends LdapBean {
+	@LdapAttribute("test")
+	float getFloat();
+    }
+
+    public static void main(String[] args) throws Exception {
+	Class c = getInstance().getClass(new Class[] { TestClass.class });
+	c.newInstance();
     }
 }
