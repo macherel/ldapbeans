@@ -20,6 +20,8 @@
  */
 package ldapbeans.util.cache;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,18 +40,14 @@ public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
      * @see Cache#get(Object);
      */
     public V get(K p_Key) {
-	V tmp;
 	V value = m_SecondaryCache.get(p_Key);
 	if (null == value) {
-	    tmp = m_PrimaryCache.get(p_Key);
-	    if (null != tmp) {
-		// try {
-		value = tmp;
-		// FIXME: value = (V) tmp.clone();
+	    value = m_PrimaryCache.get(p_Key);
+	    if (null != value) {
+		if (!(value instanceof Commitable)) {
+		    value = createCopy(value);
+		}
 		m_SecondaryCache.put(p_Key, value);
-		// } catch (CloneNotSupportedException e) {
-		// e.printStackTrace();
-		// }
 	    }
 	}
 	return value;
@@ -90,11 +88,18 @@ public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
     @Override
     @SuppressWarnings("unchecked")
     public boolean remove(Object p_Key) {
-	if (m_SecondaryCache.remove(p_Key)) {
-	    m_RemovedKeys.add((K) p_Key);
+	K key = (K) p_Key;
+	if (m_SecondaryCache.remove(key)) {
+	    m_RemovedKeys.add(key);
 	    return true;
+	} else {
+	    if (m_PrimaryCache.containsKey(key)) {
+		m_RemovedKeys.add(key);
+		return true;
+	    } else {
+		return false;
+	    }
 	}
-	return m_PrimaryCache.remove(p_Key);
     }
 
     /**
@@ -104,9 +109,8 @@ public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
      */
     @Override
     public void clear() {
-	m_PrimaryCache.clear();
 	m_SecondaryCache.clear();
-	m_RemovedKeys.clear();
+	m_RemovedKeys.addAll(m_PrimaryCache.keySet());
     }
 
     /**
@@ -127,6 +131,13 @@ public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
      */
     public void commit() {
 	m_PrimaryCache.removeAll(m_RemovedKeys);
+	for (CacheEntry<K, V> entry : m_SecondaryCache) {
+	    V value = entry.getValue();
+	    if (value instanceof Commitable) {
+		((Commitable) value).commit();
+	    }
+	    m_PrimaryCache.put(entry.getKey(), value);
+	}
 	m_PrimaryCache.putAll(m_SecondaryCache);
 	m_SecondaryCache.clear();
 	m_RemovedKeys.clear();
@@ -138,6 +149,13 @@ public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
      * @see CommitableCache#rollback()
      */
     public void rollback() {
+	for (CacheEntry<K, V> entry : m_SecondaryCache) {
+	    V value = entry.getValue();
+	    if (value instanceof Commitable) {
+		((Commitable) value).rollback();
+	    }
+	    m_PrimaryCache.put(entry.getKey(), value);
+	}
 	m_SecondaryCache.clear();
 	m_RemovedKeys.clear();
     }
@@ -151,6 +169,44 @@ public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
 	Set<K> keySet = new HashSet<K>(m_SecondaryCache.keySet());
 	keySet.addAll(m_PrimaryCache.keySet());
 	return keySet;
+    }
+
+    /**
+     * Create a copy of the parameter's value
+     * 
+     * @param <V>
+     *            The type of the value to copy
+     * @param p_Value
+     *            The value to copy
+     * @return A copy of the value
+     */
+    @SuppressWarnings("unchecked")
+    private static <V> V createCopy(V p_Value) {
+	Class<V> clazz = (Class<V>) p_Value.getClass();
+	// Try to find copy constructor
+	try {
+	    Constructor<V> constructor = clazz.getConstructor(clazz);
+	    if (constructor != null) {
+		constructor.setAccessible(true);
+		return constructor.newInstance(p_Value);
+	    }
+	} catch (Exception e) {
+	    throw new IllegalArgumentException(
+		    "Cannot create a copy of the value " + p_Value, e);
+	}
+	// Try to use clone method
+	try {
+	    Method cloneMethod = clazz.getMethod("clone");
+	    if (cloneMethod != null) {
+		cloneMethod.setAccessible(true);
+		return (V) cloneMethod.invoke(p_Value);
+	    }
+	} catch (Exception e) {
+	    throw new IllegalArgumentException(
+		    "Cannot create a copy of the value " + p_Value, e);
+	}
+	throw new IllegalArgumentException("Cannot create a copy of the value "
+		+ p_Value);
     }
 
 }

@@ -20,15 +20,14 @@
  */
 package ldapbeans.util.cache;
 
-public interface CommitableCache<K, V> extends Commitable, Cache<K, V> {
+public interface Commitable {
     /**
-     * {@inheritDoc}
-     * 
-     * @return A copy of the present in the cache if the value is not an
-     *         instance of {@link Commitable} and if the value is present and
-     *         was commit in the cache
-     * 
-     * @see Cache#get(Object)
+     * Commit modification of the object
      */
-    V get(K p_Key);
+    public void commit();
+
+    /**
+     * Rollback any modification of the object since last commit
+     */
+    public void rollback();
 }
