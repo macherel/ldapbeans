@@ -25,6 +25,7 @@ import javax.naming.directory.SchemaViolationException;
 import junit.framework.Assert;
 import ldapbeans.bean.BeanForBooleanTest;
 import ldapbeans.bean.BeanForNumberTest;
+import ldapbeans.bean.BeanForTest;
 import ldapbeans.bean.LdapBean;
 import ldapbeans.bean.LdapBeanHelper;
 import ldapbeans.bean.LdapBeanManager;
@@ -605,6 +606,38 @@ public class LdapBeanTest {
 	Assert.assertEquals("22.0", bean.getDescription());
 	Assert.assertEquals(22.0d, bean.getDoubleP(), 0.01d);
 	Assert.assertEquals(22.0d, bean.getDouble().doubleValue(), 0.01d);
+    }
+
+    /**
+     * Test for getter and setter call
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testChar() throws Exception {
+	BeanForTest bean = s_Manager.create(BeanForTest.class,
+		"ou=foo,ou=system");
+	bean.setDescription("a");
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("a", bean.getDescription());
+	Assert.assertEquals('a', bean.getChar());
+	Assert.assertEquals('a', bean.getCharacter().charValue());
+
+	bean.setChar('b');
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("b", bean.getDescription());
+	Assert.assertEquals('b', bean.getChar());
+	Assert.assertEquals('b', bean.getCharacter().charValue());
+
+	bean.setCharacter(Character.valueOf('c'));
+	bean.store();
+	bean.restore();
+	Assert.assertEquals("c", bean.getDescription());
+	Assert.assertEquals('c', bean.getChar());
+	Assert.assertEquals('c', bean.getCharacter().charValue());
     }
 
     /**

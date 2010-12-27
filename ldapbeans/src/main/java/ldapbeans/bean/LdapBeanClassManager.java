@@ -769,11 +769,15 @@ public final class LdapBeanClassManager {
 	    // String value = String.valueOf(p_AttributeValue);
 	    generateMethodSetterAssignValueConvertPrimitive(p_MethodVisitor,
 		    p_OriginalType);
-	    // mv.visitLdcInsn("FIXME");
-	    // mv.visitVarInsn(ASTORE, 5);
-	} else {
+	} else if (String.class.isAssignableFrom(p_OriginalType)) {
 	    // String value = p_AttributeValue;
 	    mv.visitVarInsn(ALOAD, 1);
+	    mv.visitVarInsn(ASTORE, 5);
+	} else {
+	    // String value = String.valueOf(p_AttributeValue);
+	    mv.visitVarInsn(ALOAD, 1);
+	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf",
+		    "(Ljava/lang/Object;)Ljava/lang/String;");
 	    mv.visitVarInsn(ASTORE, 5);
 	}
     }
@@ -882,7 +886,8 @@ public final class LdapBeanClassManager {
 	if ((true == boolean.class.equals(p_ReturnType))
 		|| (true == byte.class.equals(p_ReturnType))
 		|| (true == short.class.equals(p_ReturnType))
-		|| (true == int.class.equals(p_ReturnType))) {
+		|| (true == int.class.equals(p_ReturnType))
+		|| (true == char.class.equals(p_ReturnType))) {
 	    mv.visitVarInsn(ILOAD, 1);
 	    mv.visitInsn(IRETURN);
 	} else if (long.class.equals(p_ReturnType)) {
@@ -1206,6 +1211,17 @@ public final class LdapBeanClassManager {
 	    } else if (p_ReturnType.isPrimitive()) {
 		generateConvertToPrimitive(p_MethodVisitor, p_ClassName,
 			p_LdapAttribute, p_ReturnType, p_Object, p_Result);
+	    } else if (Character.class.isAssignableFrom(p_ReturnType)) {
+		// result = Character.valueOf(object.toString().charAt(0));
+		mv.visitVarInsn(ALOAD, p_Object);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object",
+			"toString", "()Ljava/lang/String;");
+		mv.visitInsn(ICONST_0);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "charAt",
+			"(I)C");
+		mv.visitMethodInsn(INVOKESTATIC, "java/lang/Character",
+			"valueOf", "(C)Ljava/lang/Character;");
+		mv.visitVarInsn(ASTORE, p_Result);
 	    } else {
 		mv.visitVarInsn(ALOAD, p_Object);
 		mv.visitVarInsn(ASTORE, p_Result);
@@ -1236,7 +1252,10 @@ public final class LdapBeanClassManager {
     private void generateDefaultValue(MethodVisitor p_MethodVisitor,
 	    Class<?> p_Type, int p_StackIndex) {
 	MethodVisitor mv = p_MethodVisitor;
-	if (byte.class.equals(p_Type)) {
+	if (char.class.equals(p_Type)) {
+	    mv.visitInsn(ICONST_0);
+	    mv.visitVarInsn(ISTORE, p_StackIndex);
+	} else if (byte.class.equals(p_Type)) {
 	    mv.visitInsn(ICONST_0);
 	    mv.visitVarInsn(ISTORE, p_StackIndex);
 	} else if (short.class.equals(p_Type)) {
@@ -1468,6 +1487,15 @@ public final class LdapBeanClassManager {
 	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "parseDouble",
 		    "(Ljava/lang/String;)D");
 	    mv.visitVarInsn(DSTORE, p_Result);
+	} else if (char.class.equals(p_ReturnType)) {
+	    // result = object.toString().charAt(0);
+	    mv.visitVarInsn(ALOAD, p_Object);
+	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
+		    "()Ljava/lang/String;");
+	    mv.visitInsn(ICONST_0);
+	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "charAt",
+		    "(I)C");
+	    mv.visitVarInsn(ISTORE, p_Result);
 	}
     }
 
