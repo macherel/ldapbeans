@@ -40,6 +40,7 @@ import javax.naming.directory.BasicAttribute;
 
 import ldapbeans.annotation.LdapAttribute;
 
+@Deprecated
 class LdapBeanInvocationHandler implements InvocationHandler {
 
     /** Ldap object (DN + attributes) */
@@ -196,19 +197,20 @@ class LdapBeanInvocationHandler implements InvocationHandler {
      * 
      * @param p_LdapAttribute
      *            Ldap attribute of the bean
-     * @param p_Param
+     * @param p_Parameter
      *            Value to be added
      */
-    private void invokeSimpleAdder(LdapAttribute p_LdapAttribute, Object p_Param) {
+    private void invokeSimpleAdder(LdapAttribute p_LdapAttribute,
+	    Object p_Parameter) {
 	Class<?> paramType;
-	if (p_Param != null) {
-	    paramType = p_Param.getClass();
+	if (p_Parameter != null) {
+	    paramType = p_Parameter.getClass();
 	    if (isBoolean(paramType)) {
-		invokeBooleanAdder(p_LdapAttribute, (Boolean) p_Param);
+		invokeBooleanAdder(p_LdapAttribute, (Boolean) p_Parameter);
 	    } else if (isNumber(paramType)) {
-		invokeNumberAdder(p_LdapAttribute, (Number) p_Param);
+		invokeNumberAdder(p_LdapAttribute, (Number) p_Parameter);
 	    } else {
-		invokeDefaultAdder(p_LdapAttribute, p_Param);
+		invokeDefaultAdder(p_LdapAttribute, p_Parameter);
 	    }
 	} else {
 	    throw new IllegalArgumentException("The parameter cannot be null");

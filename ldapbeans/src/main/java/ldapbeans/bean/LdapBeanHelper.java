@@ -73,12 +73,13 @@ public final class LdapBeanHelper {
      * Collection of managed classes (it is implemented as a Set to manage
      * double)
      */
-    private final Collection<Class<?>> m_ManagedClasses = new HashSet<Class<?>>();
+    private final Collection<Class<?>> m_ManagedClasses;
 
     /**
      * Default constructor. This class can not be instantiated.
      */
     private LdapBeanHelper() {
+	m_ManagedClasses = new HashSet<Class<?>>();
 	addManagedClass(LdapBean.class);
     }
 

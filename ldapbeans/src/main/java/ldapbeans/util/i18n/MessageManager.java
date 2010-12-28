@@ -23,17 +23,17 @@ package ldapbeans.util.i18n;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.regex.Pattern;
 
 import ldapbeans.util.StringUtil;
 
 public final class MessageManager {
 
     /** Map of instances */
-    private final static Map<String, MessageManager> INSTANCES = new HashMap<String, MessageManager>();
+    private final static Map<String, MessageManager> INSTANCES;
 
-    /** Pattern of parameter in messages */
-    private final static Pattern PATTERN = Pattern.compile("(\\$\\d+)");
+    static {
+	INSTANCES = new HashMap<String, MessageManager>();
+    }
 
     /**
      * Return the default instance

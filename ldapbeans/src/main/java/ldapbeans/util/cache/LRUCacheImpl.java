@@ -84,8 +84,16 @@ public class LRUCacheImpl<K, V> extends AbstractCache<K, V> implements
 	}
     }
 
-    private final LinkedList<CacheEntry<K, V>> m_Cache = new LinkedList<CacheEntry<K, V>>();
-    private int m_MaxSize = -1;
+    private final LinkedList<CacheEntry<K, V>> m_Cache;
+    private int m_MaxSize;
+
+    /**
+     * Default constructor
+     */
+    public LRUCacheImpl() {
+	m_Cache = new LinkedList<CacheEntry<K, V>>();
+	m_MaxSize = -1;
+    }
 
     /**
      * {@inheritDoc}

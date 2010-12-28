@@ -29,26 +29,36 @@ public final class LdapbeansConfiguration implements
 	LdapbeansConfigurationMBean {
 
     /** Name of the property that describe the class cache implementation */
-    private final static String PROPERTY_CACHE_CLASS_IMPLEMENTATION = "ldapbeans.cache.impl";
+    private final static String PROPERTY_CACHE_CLASS_IMPLEMENTATION;
     /**
      * Name of the property that describe the path where generated class will be
      * stored
      */
-    private final static String PROPERTY_GENERATED_CLASS_PATH = "ldapbeans.generated.class.path";
+    private final static String PROPERTY_GENERATED_CLASS_PATH;
     /**
      * Name of the property that have to be set if ldapbeans have to used
      * dynamic proxy
      */
-    private final static String PROPERTY_USE_PROXY_BEAN = "ldapbeans.use.proxy.bean";
+    private final static String PROPERTY_USE_PROXY_BEAN;
 
     /**
      * Name of the property that have to be set if generated class have to
      * contains line number debug information
      */
-    private final static String PROPERTY_DEBUG_LINE_NUMBER_ENABLED = "ldapbeans.debug.line.number.enabled";
+    private final static String PROPERTY_DEBUG_LINE_NUMBER_ENABLED;
 
     /** Singleton instance of this class */
-    private final static LdapbeansConfiguration INSTANCE = new LdapbeansConfiguration();
+    private final static LdapbeansConfiguration INSTANCE;
+
+    /** static constructor */
+    static {
+	PROPERTY_CACHE_CLASS_IMPLEMENTATION = "ldapbeans.cache.impl";
+	PROPERTY_GENERATED_CLASS_PATH = "ldapbeans.generated.class.path";
+	PROPERTY_USE_PROXY_BEAN = "ldapbeans.use.proxy.bean";
+	PROPERTY_DEBUG_LINE_NUMBER_ENABLED = "ldapbeans."
+		+ "debug.line.number.enabled";
+	INSTANCE = new LdapbeansConfiguration();
+    }
 
     /**
      * Return the singleton instance
@@ -99,55 +109,44 @@ public final class LdapbeansConfiguration implements
 		.getProperty(PROPERTY_DEBUG_LINE_NUMBER_ENABLED) != null;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see ldapbeans.util.LdapbeansConfigurationMBean#getGeneratedClassPath()
+    /**
+     * {@inheritDoc}
      */
     public String getGeneratedClassPath() {
 	return m_GeneratedClassPath;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * ldapbeans.util.LdapbeansConfigurationMBean#setGeneratedClassPath(java
-     * .lang.String)
+    /**
+     * {@inheritDoc}
      */
     public void setGeneratedClassPath(String p_GeneratedClassPath) {
 	m_GeneratedClassPath = p_GeneratedClassPath;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * ldapbeans.util.LdapbeansConfigurationMBean#getCacheImplementationClassName
-     * ()
+    /**
+     * {@inheritDoc}
      */
     public String getCacheImplementationClassName() {
 	return m_CacheImplementationClassName;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see ldapbeans.util.LdapbeansConfigurationMBean#useProxyBean()
+    /**
+     * {@inheritDoc}
      */
     public boolean useProxyBean() {
 	return m_UseProxyBean;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see ldapbeans.util.LdapbeansConfigurationMBean#setUseProxyBean(boolean)
+    /**
+     * {@inheritDoc}
      */
     public void setUseProxyBean(boolean p_UseProxyBean) {
 	m_UseProxyBean = p_UseProxyBean;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public boolean isDebugLineNumberEnabled() {
 	return m_IsDebugLineNumberEnabled;
     }

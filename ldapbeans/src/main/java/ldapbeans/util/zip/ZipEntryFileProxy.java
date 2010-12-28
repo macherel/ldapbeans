@@ -34,14 +34,14 @@ public class ZipEntryFileProxy extends AbstractZipFileProxy {
      * 
      * @param p_ZipFileProxy
      *            Proxy of the {@link ZipFile} of this entry
-     * @param p_ZipEntryName
+     * @param p_EntryName
      *            The name of the entry
      */
-    public ZipEntryFileProxy(ZipFileProxy p_ZipFileProxy, String p_ZipEntryName) {
-	super(p_ZipFileProxy.getPath() + '!' + p_ZipEntryName);
+    public ZipEntryFileProxy(ZipFileProxy p_ZipFileProxy, String p_EntryName) {
+	super(p_ZipFileProxy.getPath() + '!' + p_EntryName);
 	m_ZipFileProxy = p_ZipFileProxy;
-	m_ZipEntryName = p_ZipEntryName.endsWith("/") ? p_ZipEntryName
-		.substring(0, p_ZipEntryName.length() - 1) : p_ZipEntryName;
+	m_ZipEntryName = p_EntryName.endsWith("/") ? p_EntryName.substring(0,
+		p_EntryName.length() - 1) : p_EntryName;
     }
 
     @Override

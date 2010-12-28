@@ -30,9 +30,6 @@ public final class StringUtil {
 	// Nothing to do
     }
 
-    /** Pattern of parameter in string to format ($0, $1, ...) */
-    private final static Pattern PATTERN = Pattern.compile("(\\$\\d+)");
-
     /**
      * Replace $i in string with corresponding parameter
      * 

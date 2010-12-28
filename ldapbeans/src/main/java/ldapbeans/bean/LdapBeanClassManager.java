@@ -96,15 +96,15 @@ public final class LdapBeanClassManager {
     private final static LdapBeanClassManager INSTANCE;
 
     /** Message manager instance */
-    private final static LdapbeansMessageManager MESSAGE = LdapbeansMessageManager
-	    .getInstance();
+    private final static LdapbeansMessageManager MESSAGE;
 
     /** the configuration */
-    private final static LdapbeansConfiguration CONFIG = LdapbeansConfiguration
-	    .getInstance();
+    private final static LdapbeansConfiguration CONFIG;
 
     static {
 	INSTANCE = new LdapBeanClassManager();
+	MESSAGE = LdapbeansMessageManager.getInstance();
+	CONFIG = LdapbeansConfiguration.getInstance();
     }
 
     /**

@@ -27,7 +27,12 @@ import ldapbeans.util.i18n.Message;
 public final class LdapbeansMessageManager {
 
     /** Singleton instance of this class */
-    private final static LdapbeansMessageManager INSTANCE = new LdapbeansMessageManager();
+    private final static LdapbeansMessageManager INSTANCE;
+
+    /** static constructor */
+    static {
+	INSTANCE = new LdapbeansMessageManager();
+    }
 
     /**
      * Return the singleton instance
@@ -119,12 +124,14 @@ public final class LdapbeansMessageManager {
      * 
      * @param p_ClassName
      *            The name of the generated class
-     * @param p_Method
+     * @param p_GeneratedMethod
      *            The generated method
      * @return The message to use if a method is already generated
      */
-    public Message getGeneratedMethodMessage(String p_ClassName, Method p_Method) {
-	return new Message("ldapbeans.generated.method", p_ClassName, p_Method);
+    public Message getGeneratedMethodMessage(String p_ClassName,
+	    Method p_GeneratedMethod) {
+	return new Message("ldapbeans.generated.method", p_ClassName,
+		p_GeneratedMethod);
     }
 
     /**

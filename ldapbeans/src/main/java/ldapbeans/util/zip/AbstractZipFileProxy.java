@@ -173,7 +173,7 @@ public abstract class AbstractZipFileProxy extends File {
 	if (files != null) {
 	    result = new ArrayList<File>(files.length);
 	    for (File file : files) {
-		if ((p_Filter == null) || p_Filter.accept(this, file.getName())) {
+		if (p_Filter == null || p_Filter.accept(this, file.getName())) {
 		    result.add(file);
 		}
 	    }

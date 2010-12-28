@@ -63,7 +63,12 @@ public final class SynchronizedObjectFactory {
     }
 
     /** unique instance of this class */
-    private static final SynchronizedObjectFactory INSTANCE = new SynchronizedObjectFactory();
+    private static final SynchronizedObjectFactory INSTANCE;
+
+    /** static constructor */
+    static {
+	INSTANCE = new SynchronizedObjectFactory();
+    }
 
     /**
      * Return the unique instance of the factory

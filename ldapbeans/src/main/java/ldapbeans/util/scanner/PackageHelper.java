@@ -113,7 +113,7 @@ public final class PackageHelper {
 			    + '.'
 			    + file.getName().substring(0,
 				    file.getName().length() - 6));
-		    if ((p_ClassFilter == null) || p_ClassFilter.accept(clazz)) {
+		    if (p_ClassFilter == null || p_ClassFilter.accept(clazz)) {
 			classes.add(clazz);
 		    }
 		}
