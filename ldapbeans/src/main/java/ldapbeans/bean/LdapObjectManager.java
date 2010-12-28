@@ -30,10 +30,10 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapContext;
 
-import ldapbeans.util.LdapbeansConfiguration;
+import ldapbeans.config.LdapbeansConfiguration;
+import ldapbeans.config.LdapbeansMessageManager;
 import ldapbeans.util.cache.Cache;
 import ldapbeans.util.cache.SimpleCache;
-import ldapbeans.util.i18n.LdapbeansMessageManager;
 import ldapbeans.util.i18n.Logger;
 import ldapbeans.util.pool.LdapContextPool;
 

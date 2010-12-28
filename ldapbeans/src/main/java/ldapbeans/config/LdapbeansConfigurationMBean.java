@@ -18,7 +18,7 @@
  *
  * Copyright 2010 Bruno Macherel
  */
-package ldapbeans.util;
+package ldapbeans.config;
 
 import java.lang.reflect.Proxy;
 

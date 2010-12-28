@@ -18,9 +18,11 @@
  *
  * Copyright 2010 Bruno Macherel
  */
-package ldapbeans.util.i18n;
+package ldapbeans.config;
 
 import java.lang.reflect.Method;
+
+import ldapbeans.util.i18n.Message;
 
 public final class LdapbeansMessageManager {
 

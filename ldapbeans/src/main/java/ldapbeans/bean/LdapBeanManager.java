@@ -30,8 +30,8 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapContext;
 
-import ldapbeans.util.LdapbeansConfiguration;
-import ldapbeans.util.i18n.LdapbeansMessageManager;
+import ldapbeans.config.LdapbeansConfiguration;
+import ldapbeans.config.LdapbeansMessageManager;
 import ldapbeans.util.i18n.Logger;
 import ldapbeans.util.pool.LdapContextPool;
 
