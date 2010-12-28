@@ -94,4 +94,16 @@ public final class MessageManager {
 	// Return formatted message
 	return message;
     }
+
+    /**
+     * Return the message depending the local
+     * 
+     * @param p_Message
+     *            The object message containing key and parameter
+     * @return The message corresponding to the key and depending the local
+     */
+    public String getMessage(Message p_Message) {
+	return getMessage(p_Message.getMessageProperty(),
+		p_Message.getParameters());
+    }
 }
