@@ -22,8 +22,10 @@ package ldapbeans.util.scanner;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.JarURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -125,7 +127,8 @@ public final class PackageHelper {
 	    }
 	} else {
 	    throw new ClassNotFoundException(p_PackageName
-		    + " does not appear to be a valid package");
+		    + " does not appear to be a valid package. "
+		    + p_Dir.getAbsolutePath() + " does not exist.");
 	}
 
 	return classes;
@@ -174,7 +177,14 @@ public final class PackageHelper {
 		    directory = null;
 		}
 	    } else {
-		directory = new File(resource.getFile());
+		String file;
+		try {
+		    file = URLDecoder.decode(resource.getFile(), "UTF-8");
+		} catch (UnsupportedEncodingException e1) {
+		    file = resource.getFile();
+		}
+
+		directory = new File(file);
 	    }
 	    if (directory != null) {
 		directories.add(directory);
