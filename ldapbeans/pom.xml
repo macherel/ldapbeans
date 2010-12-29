@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.googlecode.ldapbeans</groupId>
   <artifactId>ldapbeans</artifactId>
-  <version>0.0.4</version>
+  <version>0.0.5-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>ldapbeans</name>
   <description>LDAPBeans is a tool that allow you to access easily to LDAP objects throw Java interfaces.</description>
@@ -14,9 +14,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:svn:http://ldapbeans.googlecode.com/svn/tags/ldapbeans-0.0.4</connection>
-    <developerConnection>scm:svn:https://ldapbeans.googlecode.com/svn/tags/ldapbeans-0.0.4</developerConnection>
-    <url>http://code.google.com/p/ldapbeans/source/browse/tags/ldapbeans-0.0.4</url>
+    <connection>scm:svn:http://ldapbeans.googlecode.com/svn/trunk/ldapbeans</connection>
+    <developerConnection>scm:svn:https://ldapbeans.googlecode.com/svn/trunk/ldapbeans</developerConnection>
+    <url>http://code.google.com/p/ldapbeans/source/browse/trunk/ldapbeans</url>
   </scm>
   <distributionManagement>
     <!-- use the following if you're not using a snapshot version. -->
