@@ -21,6 +21,7 @@
 package ldapbeans.util.zip;
 
 import java.io.File;
+import java.net.URLDecoder;
 import java.util.zip.ZipFile;
 
 import org.junit.Assert;
@@ -42,6 +43,7 @@ public class ZipFileTest {
     public void testZipFile() throws Exception {
 	ClassLoader cld = Thread.currentThread().getContextClassLoader();
 	String fileName = cld.getResource("test_zip_file.zip").getFile();
+	fileName = URLDecoder.decode(fileName, "UTF-8");
 	File zipFile = new ZipFileProxy(new ZipFile(fileName));
 
 	checkZipFile(0, zipFile);
