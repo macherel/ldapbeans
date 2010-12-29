@@ -154,7 +154,6 @@ public class CommitableCacheImpl<K, V> extends AbstractCache<K, V> implements
 	    if (value instanceof Commitable) {
 		((Commitable) value).rollback();
 	    }
-	    m_PrimaryCache.put(entry.getKey(), value);
 	}
 	m_SecondaryCache.clear();
 	m_RemovedKeys.clear();
