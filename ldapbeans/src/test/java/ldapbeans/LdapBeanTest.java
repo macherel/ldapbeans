@@ -710,4 +710,36 @@ public class LdapBeanTest {
 	Assert.assertEquals("child", child.getSurname());
     }
 
+    /**
+     * Test for setter with LdapBean type
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testLdapBeanSetter() throws Exception {
+	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	foo.setCommonName("foo");
+	foo.setSurname("surname");
+	Person bar = s_Manager.create(Person.class, "cn=bar,ou=system");
+	bar.setCommonName("bar");
+	bar.setSurname("surname");
+
+	foo.setOtherPerson(bar);
+	bar.setOtherPerson(foo);
+
+	foo.store();
+	bar.store();
+	foo.restore();
+	bar.restore();
+
+	Assert.assertEquals("cn=bar,ou=system", foo.getDescriptionArray()[0]);
+	Assert.assertEquals("cn=bar,ou=system", foo.getOtherPersonByDn()
+		.getDN());
+	Assert.assertEquals(bar, foo.getOtherPersonByDn());
+	Assert.assertEquals("cn=foo,ou=system", bar.getDescriptionArray()[0]);
+	Assert.assertEquals("cn=foo,ou=system", bar.getOtherPersonByDn()
+		.getDN());
+	Assert.assertEquals(foo, bar.getOtherPersonByDn());
+    }
 }

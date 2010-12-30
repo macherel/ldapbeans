@@ -122,6 +122,15 @@ public interface Person extends LdapBean {
     Object getErreur();
 
     /**
+     * set another Person
+     * 
+     * @param p_Person
+     *            Another Person
+     */
+    @LdapAttribute("description")
+    void setOtherPerson(Person p_Person);
+
+    /**
      * Return another Person
      * 
      * @return Another Person

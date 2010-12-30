@@ -32,6 +32,7 @@ import static org.objectweb.asm.Opcodes.ANEWARRAY;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.ATHROW;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DLOAD;
 import static org.objectweb.asm.Opcodes.DSTORE;
 import static org.objectweb.asm.Opcodes.DUP;
@@ -48,6 +49,7 @@ import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.IFNONNULL;
 import static org.objectweb.asm.Opcodes.IFNULL;
 import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.INSTANCEOF;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
@@ -190,6 +192,9 @@ public final class LdapBeanClassManager {
 	try {
 	    generateMethod(cw, className, Object.class.getMethod("toString"),
 		    generatedMethod);
+	    generateMethod(cw, className,
+		    Object.class.getMethod("equals", Object.class),
+		    generatedMethod);
 	} catch (Exception e) {
 	    // Do nothing, Object's method will be used
 	}
@@ -327,6 +332,10 @@ public final class LdapBeanClassManager {
 		} else if (p_Method.equals(Object.class.getMethod("toString"))) {
 		    generateMethodToString(p_ClassWriter, p_ClassName,
 			    p_Method, methodDescriptor);
+		} else if (p_Method.equals(Object.class.getMethod("equals",
+			Object.class))) {
+		    generateMethodEquals(p_ClassWriter, p_ClassName, p_Method,
+			    methodDescriptor);
 		} else {
 		    generateMethod(p_ClassWriter, p_ClassName, p_Method,
 			    methodDescriptor, p_GeneratedMethod.size() * 100);
@@ -518,6 +527,52 @@ public final class LdapBeanClassManager {
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObject",
 		"toString", "()Ljava/lang/String;");
 	mv.visitInsn(ARETURN);
+	mv.visitMaxs(0, 0);
+	mv.visitEnd();
+    }
+
+    /**
+     * Generate a method of the generated class
+     * 
+     * @param p_ClassWriter
+     *            The {@link ClassWriter} of the generated class
+     * @param p_ClassName
+     *            The name of the class
+     * @param p_Method
+     *            the method to generate
+     * @param p_MethodDescriptor
+     *            The method descriptor
+     */
+    private void generateMethodEquals(ClassWriter p_ClassWriter,
+	    String p_ClassName, Method p_Method, String p_MethodDescriptor) {
+	MethodVisitor mv = p_ClassWriter.visitMethod(ACC_PUBLIC, "equals",
+		"(Ljava/lang/Object;)Z", null, null);
+	mv.visitCode();
+	mv.visitVarInsn(ALOAD, 1);
+	mv.visitTypeInsn(INSTANCEOF, "ldapbeans/bean/LdapBean");
+	Label l0 = new Label();
+	mv.visitJumpInsn(IFEQ, l0);
+	mv.visitVarInsn(ALOAD, 1);
+	Label l1 = new Label();
+	mv.visitJumpInsn(IFNULL, l1);
+	mv.visitVarInsn(ALOAD, 0);
+	mv.visitMethodInsn(INVOKEINTERFACE, "ldapbeans/bean/LdapBean", "getDN",
+		"()Ljava/lang/String;");
+	mv.visitVarInsn(ALOAD, 1);
+	mv.visitTypeInsn(CHECKCAST, "ldapbeans/bean/LdapBean");
+	mv.visitMethodInsn(INVOKEINTERFACE, "ldapbeans/bean/LdapBean", "getDN",
+		"()Ljava/lang/String;");
+	mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals",
+		"(Ljava/lang/Object;)Z");
+	mv.visitJumpInsn(IFEQ, l1);
+	mv.visitInsn(ICONST_1);
+	mv.visitInsn(IRETURN);
+	mv.visitLabel(l1);
+	mv.visitInsn(ICONST_0);
+	mv.visitInsn(IRETURN);
+	mv.visitLabel(l0);
+	mv.visitInsn(ICONST_0);
+	mv.visitInsn(IRETURN);
 	mv.visitMaxs(0, 0);
 	mv.visitEnd();
     }
@@ -771,8 +826,12 @@ public final class LdapBeanClassManager {
 		    p_OriginalType);
 	} else if (String.class.isAssignableFrom(p_OriginalType)) {
 	    // String value = p_AttributeValue;
-	    mv.visitVarInsn(ALOAD, 1);
-	    mv.visitVarInsn(ASTORE, 5);
+	    generateMethodSetterAssignValueConvertString(p_MethodVisitor,
+		    p_OriginalType);
+	} else if (LdapBean.class.isAssignableFrom(p_OriginalType)) {
+	    // String value = p_AttributeValue.getDN();
+	    generateMethodSetterAssignValueConvertLdapBean(p_MethodVisitor,
+		    p_OriginalType);
 	} else {
 	    // String value = String.valueOf(p_AttributeValue);
 	    mv.visitVarInsn(ALOAD, 1);
@@ -860,6 +919,38 @@ public final class LdapBeanClassManager {
 	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf", "("
 		    + type.toString() + ")Ljava/lang/String;");
 	}
+	mv.visitVarInsn(ASTORE, 5);
+    }
+
+    /**
+     * Generate a portion of a method of the generated class
+     * 
+     * @param p_MethodVisitor
+     *            The {@link MethodVisitor} of the generated method
+     * @param p_OriginalType
+     *            The type before conversion
+     */
+    private void generateMethodSetterAssignValueConvertString(
+	    MethodVisitor p_MethodVisitor, Class<?> p_OriginalType) {
+	MethodVisitor mv = p_MethodVisitor;
+	mv.visitVarInsn(ALOAD, 1);
+	mv.visitVarInsn(ASTORE, 5);
+    }
+
+    /**
+     * Generate a portion of a method of the generated class
+     * 
+     * @param p_MethodVisitor
+     *            The {@link MethodVisitor} of the generated method
+     * @param p_OriginalType
+     *            The type before conversion
+     */
+    private void generateMethodSetterAssignValueConvertLdapBean(
+	    MethodVisitor p_MethodVisitor, Class<?> p_OriginalType) {
+	MethodVisitor mv = p_MethodVisitor;
+	mv.visitVarInsn(ALOAD, 1);
+	mv.visitMethodInsn(INVOKEINTERFACE, "ldapbeans/bean/LdapBean", // Type.getInternalName(p_OriginalType),
+		"getDN", "()Ljava/lang/String;");
 	mv.visitVarInsn(ASTORE, 5);
     }
 
@@ -1668,15 +1759,5 @@ public final class LdapBeanClassManager {
 	    result.append(clazz.getName()).append(' ');
 	}
 	return result.toString();
-    }
-
-    public static interface TestClass extends LdapBean {
-	@LdapAttribute("test")
-	float getFloat();
-    }
-
-    public static void main(String[] args) throws Exception {
-	Class c = getInstance().getClass(new Class[] { TestClass.class });
-	c.newInstance();
     }
 }
