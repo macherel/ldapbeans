@@ -28,29 +28,8 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface LdapAttribute {
+@Target(ElementType.PARAMETER)
+public @interface ConvertAttribute {
     /** Name of LDAP attribute */
-    String value();
-
-    /** Value mapping for "true" boolean value */
-    String[] trueValue() default { "true", "1" };
-
-    /** Value mapping for "false" boolean value */
-    String[] falseValue() default { "false", "0" };
-
-    /**
-     * describe the ldap search when this attribute correspond to another
-     * LdapBean
-     */
-    String search() default "";
-
-    /**
-     * RegExp that will be used to find parameters to replace in the LDAP search
-     * filter
-     */
-    String pattern() default "";
-
-    /** ComponentType of collection used to convert ldap attribute element */
-    Class<?> componentType() default String.class;
+    String method() default "getDN";
 }

@@ -31,7 +31,7 @@ public final class StringUtil {
     }
 
     /**
-     * Replace $i in string with corresponding parameter
+     * Replace $i (i start at 0) in string with corresponding parameter
      * 
      * @param p_UnformatedString
      *            The String to format

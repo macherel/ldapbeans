@@ -164,7 +164,10 @@ public class LdapBeanTest {
 		    + "            Modification[0]\n"
 		    + "                Operation :  replace\n"
 		    + "                Modification\n"
-		    + "    objectClass: person\n" + "    objectClass: top\n"
+		    + "    objectClass: person\n"
+		    + "    objectClass: organizationalPerson\n"
+		    + "    objectClass: inetOrgPerson\n"
+		    + "    objectClass: top\n"
 		    + "            Modification[1]\n"
 		    + "                Operation :  replace\n"
 		    + "                Modification\n" + "    sn: surname\n"
@@ -741,5 +744,38 @@ public class LdapBeanTest {
 	Assert.assertEquals("cn=foo,ou=system", bar.getOtherPersonByDn()
 		.getDN());
 	Assert.assertEquals(foo, bar.getOtherPersonByDn());
+    }
+
+    /**
+     * Test for setter with LdapBean type
+     * 
+     * @throws Exception
+     *             If an error occurs
+     */
+    @Test
+    public void testLdapBeanSetterUsingUid() throws Exception {
+	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	foo.setUid("foo");
+	foo.setCommonName("foo");
+	foo.setSurname("surname");
+	Person bar = s_Manager.create(Person.class, "cn=bar,ou=system");
+	bar.setUid("bar");
+	bar.setCommonName("bar");
+	bar.setSurname("surname");
+
+	foo.setOtherPersonUsingUid(bar);
+	bar.setOtherPersonUsingUid(foo);
+
+	foo.store();
+	bar.store();
+	foo.restore();
+	bar.restore();
+
+	Assert.assertEquals("bar", foo.getDescriptionArray()[0]);
+	Assert.assertEquals("bar", foo.getOtherPersonBySimpleSearch().getUid());
+	Assert.assertEquals(bar, foo.getOtherPersonBySimpleSearch());
+	Assert.assertEquals("foo", bar.getDescriptionArray()[0]);
+	Assert.assertEquals("foo", bar.getOtherPersonBySimpleSearch().getUid());
+	Assert.assertEquals(foo, bar.getOtherPersonBySimpleSearch());
     }
 }

@@ -67,6 +67,7 @@ import static org.objectweb.asm.Opcodes.V1_5;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
@@ -76,6 +77,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import ldapbeans.annotation.ConvertAttribute;
 import ldapbeans.annotation.LdapAttribute;
 import ldapbeans.config.LdapbeansConfiguration;
 import ldapbeans.config.LdapbeansMessageManager;
@@ -626,8 +628,8 @@ public final class LdapBeanClassManager {
 	mv.visitCode();
 	if (void.class.equals(returnType) && (parameterTypes.length == 1)) {
 	    // It must be a setter
-	    generateMethodSetter(mv, p_ClassName, p_Method.getName(),
-		    ldapAttribute, parameterTypes);
+	    generateMethodSetter(mv, p_ClassName, p_Method, ldapAttribute,
+		    parameterTypes);
 	} else if ((!void.class.equals(returnType))
 		&& (parameterTypes.length == 0)) {
 	    // It must be a getter
@@ -646,20 +648,21 @@ public final class LdapBeanClassManager {
      *            The {@link MethodVisitor} of the generated method
      * @param p_ClassName
      *            The name of the class
-     * @param p_MethodName
-     *            the name of the generated method
+     * @param p_Method
+     *            the generated method
      * @param p_LdapAttribute
      *            The LdapAttribute that will be used for generating the method
      * @param p_ParameterTypes
      *            The type of the generated method parameters
      */
     private void generateMethodSetter(MethodVisitor p_MethodVisitor,
-	    String p_ClassName, String p_MethodName,
-	    LdapAttribute p_LdapAttribute, Class<?>[] p_ParameterTypes) {
+	    String p_ClassName, Method p_Method, LdapAttribute p_LdapAttribute,
+	    Class<?>[] p_ParameterTypes) {
 	MethodVisitor mv = p_MethodVisitor;
-	generateMethodSetterInitializeAttribute(mv, p_ClassName, p_MethodName,
+	generateMethodSetterInitializeAttribute(mv, p_ClassName, p_Method,
 		p_LdapAttribute);
-	generateMethodSetterAssignValue(mv, p_LdapAttribute, p_ParameterTypes);
+	generateMethodSetterAssignValue(mv, p_ClassName, p_Method,
+		p_LdapAttribute, p_ParameterTypes);
 	// return;
 	mv.visitInsn(RETURN);
     }
@@ -669,21 +672,21 @@ public final class LdapBeanClassManager {
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
-     * @param p_Class
-     *            Name of the class to generate
-     * @param p_MethodName
-     *            the name of the generated method
+     * @param p_ClassName
+     *            The name of the class
+     * @param p_Method
+     *            the generated method
      * @param p_LdapAttribute
      *            The LdapAttribute that will be used for generating the method
      */
     private void generateMethodSetterInitializeAttribute(
-	    MethodVisitor p_MethodVisitor, String p_Class, String p_MethodName,
+	    MethodVisitor p_MethodVisitor, String p_ClassName, Method p_Method,
 	    LdapAttribute p_LdapAttribute) {
 	MethodVisitor mv = p_MethodVisitor;
 	String attributeName = p_LdapAttribute.value();
 	// Attributes attributes = m_LdapObject.getAttributes();
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_Class,
+	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObject",
 		"getAttributes", "()Ljavax/naming/directory/Attributes;");
@@ -715,7 +718,7 @@ public final class LdapBeanClassManager {
 		"(Ljavax/naming/directory/Attribute;)"
 			+ "Ljavax/naming/directory/Attribute;");
 	mv.visitInsn(POP);
-	if (!p_MethodName.startsWith("add")) {
+	if (!p_Method.getName().startsWith("add")) {
 	    /*
 	     * If method is not an adder (but a simple setter), attribute has to
 	     * be cleared
@@ -741,13 +744,18 @@ public final class LdapBeanClassManager {
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
+     * @param p_ClassName
+     *            The name of the class
+     * @param p_Method
+     *            the generated method
      * @param p_LdapAttribute
      *            The LdapAttribute that will be used for generating the method
      * @param p_ParameterTypes
      *            The type of parameters
      */
     private void generateMethodSetterAssignValue(MethodVisitor p_MethodVisitor,
-	    LdapAttribute p_LdapAttribute, Class<?>[] p_ParameterTypes) {
+	    String p_ClassName, Method p_Method, LdapAttribute p_LdapAttribute,
+	    Class<?>[] p_ParameterTypes) {
 	MethodVisitor mv = p_MethodVisitor;
 	if (Collection.class.isAssignableFrom(p_ParameterTypes[0])) {
 	    /*
@@ -784,8 +792,8 @@ public final class LdapBeanClassManager {
 	    mv.visitJumpInsn(GOTO, l2);
 	    mv.visitLabel(l3);
 	} else {
-	    generateMethodSetterAssignValueConvert(mv, p_LdapAttribute,
-		    p_ParameterTypes[0]);
+	    generateMethodSetterAssignValueConvert(mv, p_ClassName, p_Method,
+		    p_LdapAttribute, p_ParameterTypes[0]);
 	    // attribute.add(value);
 	    mv.visitVarInsn(ALOAD, 4);
 	    mv.visitVarInsn(ALOAD, 5);
@@ -801,14 +809,18 @@ public final class LdapBeanClassManager {
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
+     * @param p_ClassName
+     *            The name of the class
+     * @param p_Method
+     *            the generated method
      * @param p_LdapAttribute
      *            The LdapAttribute that will be used for generating the method
      * @param p_OriginalType
      *            The type before conversion
      */
     private void generateMethodSetterAssignValueConvert(
-	    MethodVisitor p_MethodVisitor, LdapAttribute p_LdapAttribute,
-	    Class<?> p_OriginalType) {
+	    MethodVisitor p_MethodVisitor, String p_ClassName, Method p_Method,
+	    LdapAttribute p_LdapAttribute, Class<?> p_OriginalType) {
 	MethodVisitor mv = p_MethodVisitor;
 	/* the parameter is a simple type, it is simply added */
 	if ((Boolean.class.equals(p_OriginalType) || boolean.class
@@ -831,7 +843,7 @@ public final class LdapBeanClassManager {
 	} else if (LdapBean.class.isAssignableFrom(p_OriginalType)) {
 	    // String value = p_AttributeValue.getDN();
 	    generateMethodSetterAssignValueConvertLdapBean(p_MethodVisitor,
-		    p_OriginalType);
+		    p_ClassName, p_Method, p_OriginalType);
 	} else {
 	    // String value = String.valueOf(p_AttributeValue);
 	    mv.visitVarInsn(ALOAD, 1);
@@ -942,15 +954,26 @@ public final class LdapBeanClassManager {
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
+     * @param p_ClassName
+     *            The name of the class
+     * @param p_Method
+     *            the generated method
      * @param p_OriginalType
      *            The type before conversion
      */
     private void generateMethodSetterAssignValueConvertLdapBean(
-	    MethodVisitor p_MethodVisitor, Class<?> p_OriginalType) {
+	    MethodVisitor p_MethodVisitor, String p_ClassName, Method p_Method,
+	    Class<?> p_OriginalType) {
 	MethodVisitor mv = p_MethodVisitor;
+	ConvertAttribute[] annotations = getConvertAttributeAnnotation(p_Method);
+	String methodName = "getDN";
+	if (annotations[0] != null) {
+	    methodName = annotations[0].method();
+	}
 	mv.visitVarInsn(ALOAD, 1);
-	mv.visitMethodInsn(INVOKEINTERFACE, "ldapbeans/bean/LdapBean", // Type.getInternalName(p_OriginalType),
-		"getDN", "()Ljava/lang/String;");
+	mv.visitMethodInsn(INVOKEINTERFACE,
+		Type.getInternalName(p_OriginalType), methodName,
+		"()Ljava/lang/String;");
 	mv.visitVarInsn(ASTORE, 5);
     }
 
@@ -1470,21 +1493,20 @@ public final class LdapBeanClassManager {
 		    "findByDn", "(Ljava/lang/Class;Ljava/lang/String;)"
 			    + "Lldapbeans/bean/LdapBean;");
 	} else {
-	    // "search_filter" = StringUtil.format("search_filter",
-	    // StringUtil.getRegExpGroup(object.toString(), regexp);
 	    mv.visitLdcInsn(p_LdapAttribute.search());
-	    if (p_LdapAttribute.searchRegexp().length() != 0) {
-		// StringUtil.getRegexpGroup(object.toString(); regExp)
+	    if (p_LdapAttribute.pattern().length() != 0) {
+		// regExpGroup = StringUtil.getRegexpGroup(object.toString(),
+		// pattern)
 		mv.visitVarInsn(ALOAD, p_Object);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object",
 			"toString", "()Ljava/lang/String;");
-		mv.visitLdcInsn(p_LdapAttribute.searchRegexp());
+		mv.visitLdcInsn(p_LdapAttribute.pattern());
 		mv.visitMethodInsn(INVOKESTATIC, "ldapbeans/util/StringUtil",
 			"getRegexpGroup",
 			"(Ljava/lang/String;Ljava/lang/String;)"
 				+ "[Ljava/lang/String;");
 	    } else {
-		// new Object[] { object }
+		// regExpGroup = new Object[] { object }
 		mv.visitInsn(ICONST_1);
 		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 		mv.visitInsn(DUP);
@@ -1492,9 +1514,11 @@ public final class LdapBeanClassManager {
 		mv.visitVarInsn(ALOAD, p_Object);
 		mv.visitInsn(AASTORE);
 	    }
+	    // searchFilter = StringUtil.format("search_filter", regExpGroup);
 	    mv.visitMethodInsn(INVOKESTATIC, "ldapbeans/util/StringUtil",
 		    "format", "(Ljava/lang/String;[Ljava/lang/Object;)"
 			    + "Ljava/lang/String;");
+	    // result = m_LdapBeanManager.searchFirst(foo.class, searchFilter);
 	    mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapBeanManager",
 		    "searchFirst", "(Ljava/lang/Class;Ljava/lang/String;)"
 			    + "Lldapbeans/bean/LdapBean;");
@@ -1759,5 +1783,29 @@ public final class LdapBeanClassManager {
 	    result.append(clazz.getName()).append(' ');
 	}
 	return result.toString();
+    }
+
+    /**
+     * Get ConvertAttribute annotation from parameters of the method
+     * 
+     * @param p_Method
+     *            the method in wich parameters have to be extract
+     * @return Le Convert attribute of each parameter of the method
+     */
+    private static ConvertAttribute[] getConvertAttributeAnnotation(
+	    Method p_Method) {
+	ConvertAttribute[] result = new ConvertAttribute[p_Method
+		.getParameterTypes().length];
+	int i = 0;
+	for (Annotation[] annotations : p_Method.getParameterAnnotations()) {
+	    result[i] = null;
+	    for (Annotation annotation : annotations) {
+		if (annotation instanceof ConvertAttribute) {
+		    result[i] = (ConvertAttribute) annotation;
+		}
+	    }
+	    i++;
+	}
+	return result;
     }
 }

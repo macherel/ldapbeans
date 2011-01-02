@@ -23,11 +23,29 @@ package ldapbeans.bean;
 import java.util.Collection;
 import java.util.List;
 
+import ldapbeans.annotation.ConvertAttribute;
 import ldapbeans.annotation.LdapAttribute;
 import ldapbeans.annotation.ObjectClass;
 
-@ObjectClass({ "person" })
+@ObjectClass({ "person", "inetOrgPerson" })
 public interface Person extends LdapBean {
+
+    /**
+     * Return the uid of the bean
+     * 
+     * @return The uid of the bean
+     */
+    @LdapAttribute("uid")
+    String getUid();
+
+    /**
+     * Set the uid of the bean
+     * 
+     * @param p_Uid
+     *            The uid of the bean
+     */
+    @LdapAttribute("uid")
+    void setUid(String p_Uid);
 
     /**
      * Return the common name of the bean
@@ -131,6 +149,16 @@ public interface Person extends LdapBean {
     void setOtherPerson(Person p_Person);
 
     /**
+     * set another Person
+     * 
+     * @param p_Person
+     *            Another Person
+     */
+    @LdapAttribute("description")
+    void setOtherPersonUsingUid(
+	    @ConvertAttribute(method = "getUid") Person p_Person);
+
+    /**
      * Return another Person
      * 
      * @return Another Person
@@ -151,6 +179,6 @@ public interface Person extends LdapBean {
      * 
      * @return Another Person
      */
-    @LdapAttribute(value = "description", search = "(uid=$0)", searchRegexp = "^\\W+(\\w*)\\W+$")
+    @LdapAttribute(value = "description", search = "(uid=$0)", pattern = "^\\W+(\\w*)\\W+$")
     Person getOtherPersonByRegexpSearch();
 }
