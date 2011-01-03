@@ -159,6 +159,20 @@ public interface Person extends LdapBean {
 	    @ConvertAttribute(method = "getUid") Person p_Person);
 
     /**
+     * set another Person
+     * 
+     * @param p_Int
+     *            An integer for test
+     * @param p_Long
+     *            A long for test
+     * @param p_Person
+     *            Another Person
+     */
+    @LdapAttribute(value = "description", pattern = "$2-$0-$1")
+    void setComplexDescription(int p_Int, long p_Long,
+	    @ConvertAttribute(method = "getUid") Person p_Person);
+
+    /**
      * Return another Person
      * 
      * @return Another Person

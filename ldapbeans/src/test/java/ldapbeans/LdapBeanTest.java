@@ -20,6 +20,10 @@
  */
 package ldapbeans;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.naming.directory.SchemaViolationException;
 
 import junit.framework.Assert;
@@ -713,6 +717,32 @@ public class LdapBeanTest {
 	Assert.assertEquals("child", child.getSurname());
     }
 
+    @Test
+    public void testSetterCollection() throws Exception {
+	List<String> descriptions = new ArrayList<String>();
+	for (int i = 0; i < 10; i++) {
+	    descriptions.add("description_" + i);
+	}
+	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	foo.setCommonName("foo");
+	foo.setSurname("surname");
+	foo.setDescriptions(descriptions);
+	Assert.assertEquals(descriptions, foo.getDescriptions());
+    }
+
+    @Test
+    public void testSetterArray() throws Exception {
+	String[] descriptions = new String[10];
+	for (int i = 0; i < descriptions.length; i++) {
+	    descriptions[i] = "description_" + i;
+	}
+	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	foo.setCommonName("foo");
+	foo.setSurname("surname");
+	foo.setDescriptionArray(descriptions);
+	Assert.assertTrue(Arrays.equals(descriptions, foo.getDescriptionArray()));
+    }
+
     /**
      * Test for setter with LdapBean type
      * 
@@ -777,5 +807,15 @@ public class LdapBeanTest {
 	Assert.assertEquals("foo", bar.getDescriptionArray()[0]);
 	Assert.assertEquals("foo", bar.getOtherPersonBySimpleSearch().getUid());
 	Assert.assertEquals(foo, bar.getOtherPersonBySimpleSearch());
+    }
+
+    @Test
+    public void testMultipleSetter() throws Exception {
+	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	foo.setUid("foo");
+	foo.setCommonName("foo");
+	foo.setSurname("surname");
+	foo.setComplexDescription(10, 20, foo);
+	Assert.assertEquals("foo-10-20", foo.getDescriptionArray()[0]);
     }
 }

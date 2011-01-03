@@ -22,6 +22,7 @@ package ldapbeans.bean;
 
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
+import static org.objectweb.asm.Opcodes.AALOAD;
 import static org.objectweb.asm.Opcodes.AASTORE;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
@@ -30,8 +31,10 @@ import static org.objectweb.asm.Opcodes.ACONST_NULL;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ANEWARRAY;
 import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.ARRAYLENGTH;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.ATHROW;
+import static org.objectweb.asm.Opcodes.BIPUSH;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DLOAD;
 import static org.objectweb.asm.Opcodes.DSTORE;
@@ -42,12 +45,15 @@ import static org.objectweb.asm.Opcodes.FSTORE;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.IADD;
 import static org.objectweb.asm.Opcodes.ICONST_0;
 import static org.objectweb.asm.Opcodes.ICONST_1;
 import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.IFNONNULL;
 import static org.objectweb.asm.Opcodes.IFNULL;
+import static org.objectweb.asm.Opcodes.IF_ICMPGE;
+import static org.objectweb.asm.Opcodes.IF_ICMPLT;
 import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.INSTANCEOF;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
@@ -626,7 +632,7 @@ public final class LdapBeanClassManager {
 	    };
 	}
 	mv.visitCode();
-	if (void.class.equals(returnType) && (parameterTypes.length == 1)) {
+	if (void.class.equals(returnType) && (parameterTypes.length > 0)) {
 	    // It must be a setter
 	    generateMethodSetter(mv, p_ClassName, p_Method, ldapAttribute,
 		    parameterTypes);
@@ -659,10 +665,17 @@ public final class LdapBeanClassManager {
 	    String p_ClassName, Method p_Method, LdapAttribute p_LdapAttribute,
 	    Class<?>[] p_ParameterTypes) {
 	MethodVisitor mv = p_MethodVisitor;
+	int startIndex = getStackIndexOfParameter(p_Method,
+		p_ParameterTypes.length);
 	generateMethodSetterInitializeAttribute(mv, p_ClassName, p_Method,
+		startIndex, p_LdapAttribute);
+	initializeTempResult(mv, startIndex, p_Method);
+	for (int i = 0; i < p_ParameterTypes.length; i++) {
+	    generateMethodSetterAssignValue(mv, p_ClassName, p_Method, i,
+		    startIndex, p_LdapAttribute, p_ParameterTypes[i]);
+	}
+	generateMethodSetterAssignResult(mv, p_ClassName, p_Method, startIndex,
 		p_LdapAttribute);
-	generateMethodSetterAssignValue(mv, p_ClassName, p_Method,
-		p_LdapAttribute, p_ParameterTypes);
 	// return;
 	mv.visitInsn(RETURN);
     }
@@ -676,12 +689,14 @@ public final class LdapBeanClassManager {
      *            The name of the class
      * @param p_Method
      *            the generated method
+     * @param p_StartIndex
+     *            First index of the stack after parameters
      * @param p_LdapAttribute
      *            The LdapAttribute that will be used for generating the method
      */
     private void generateMethodSetterInitializeAttribute(
 	    MethodVisitor p_MethodVisitor, String p_ClassName, Method p_Method,
-	    LdapAttribute p_LdapAttribute) {
+	    int p_StartIndex, LdapAttribute p_LdapAttribute) {
 	MethodVisitor mv = p_MethodVisitor;
 	String attributeName = p_LdapAttribute.value();
 	// Attributes attributes = m_LdapObject.getAttributes();
@@ -690,16 +705,16 @@ public final class LdapBeanClassManager {
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObject",
 		"getAttributes", "()Ljavax/naming/directory/Attributes;");
-	mv.visitVarInsn(ASTORE, 3);
+	mv.visitVarInsn(ASTORE, p_StartIndex + 2);
 	// Attribute attribute = attributes.get("attributeName");
-	mv.visitVarInsn(ALOAD, 3);
+	mv.visitVarInsn(ALOAD, p_StartIndex + 2);
 	mv.visitLdcInsn(attributeName);
 	mv.visitMethodInsn(INVOKEINTERFACE,
 		"javax/naming/directory/Attributes", "get",
 		"(Ljava/lang/String;)Ljavax/naming/directory/Attribute;");
-	mv.visitVarInsn(ASTORE, 4);
+	mv.visitVarInsn(ASTORE, p_StartIndex + 3);
 	// if (attribute == null) {
-	mv.visitVarInsn(ALOAD, 4);
+	mv.visitVarInsn(ALOAD, p_StartIndex + 3);
 	Label l0 = new Label();
 	mv.visitJumpInsn(IFNONNULL, l0);
 	// attribute = new BasicAttribute("attributeName");
@@ -709,10 +724,10 @@ public final class LdapBeanClassManager {
 	mv.visitMethodInsn(INVOKESPECIAL,
 		"javax/naming/directory/BasicAttribute", "<init>",
 		"(Ljava/lang/String;)V");
-	mv.visitVarInsn(ASTORE, 4);
+	mv.visitVarInsn(ASTORE, p_StartIndex + 3);
 	// attributes.put(attribute);
-	mv.visitVarInsn(ALOAD, 3);
-	mv.visitVarInsn(ALOAD, 4);
+	mv.visitVarInsn(ALOAD, p_StartIndex + 2);
+	mv.visitVarInsn(ALOAD, p_StartIndex + 3);
 	mv.visitMethodInsn(INVOKEINTERFACE,
 		"javax/naming/directory/Attributes", "put",
 		"(Ljavax/naming/directory/Attribute;)"
@@ -728,7 +743,7 @@ public final class LdapBeanClassManager {
 	    mv.visitJumpInsn(GOTO, l1);
 	    mv.visitLabel(l0);
 	    // attribute.clear();
-	    mv.visitVarInsn(ALOAD, 4);
+	    mv.visitVarInsn(ALOAD, p_StartIndex + 3);
 	    mv.visitMethodInsn(INVOKEINTERFACE,
 		    "javax/naming/directory/Attribute", "clear", "()V");
 	    // }
@@ -740,68 +755,55 @@ public final class LdapBeanClassManager {
     }
 
     /**
-     * Generate a portion of a method of the generated class
+     * generate code that initialize variable corresponding to temporary result
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
-     * @param p_ClassName
-     *            The name of the class
      * @param p_Method
      *            the generated method
-     * @param p_LdapAttribute
-     *            The LdapAttribute that will be used for generating the method
-     * @param p_ParameterTypes
-     *            The type of parameters
+     * @param p_StartStack
+     *            First index of the stack after parameters
      */
-    private void generateMethodSetterAssignValue(MethodVisitor p_MethodVisitor,
-	    String p_ClassName, Method p_Method, LdapAttribute p_LdapAttribute,
-	    Class<?>[] p_ParameterTypes) {
+    private void initializeTempResult(MethodVisitor p_MethodVisitor,
+	    int p_StartStack, Method p_Method) {
 	MethodVisitor mv = p_MethodVisitor;
-	if (Collection.class.isAssignableFrom(p_ParameterTypes[0])) {
-	    /*
-	     * The parameter is a collection, each element of the collection
-	     * will be added
-	     */
-	    // Iterator it = p_AttributeValue.iterator();
-	    mv.visitVarInsn(ALOAD, 1);
-	    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Collection",
-		    "iterator", "()Ljava/util/Iterator;");
-	    mv.visitVarInsn(ASTORE, 6);
-	    // while(it.hasNext()) {
-	    Label l2 = new Label();
-	    mv.visitLabel(l2);
-	    mv.visitVarInsn(ALOAD, 6);
-	    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator",
-		    "hasNext", "()Z");
-	    Label l3 = new Label();
-	    mv.visitJumpInsn(IFEQ, l3);
+	mv.visitInsn(ICONST_0);
+	mv.visitVarInsn(ISTORE, p_StartStack + 1);
 
-	    // String value = (String) it.next();
-	    mv.visitVarInsn(ALOAD, 6);
-	    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next",
-		    "()Ljava/lang/Object;");
-	    mv.visitVarInsn(ASTORE, 5);
-	    // attribute.add(value);
-	    mv.visitVarInsn(ALOAD, 4);
-	    mv.visitVarInsn(ALOAD, 5);
-	    mv.visitMethodInsn(INVOKEINTERFACE,
-		    "javax/naming/directory/Attribute", "add",
-		    "(Ljava/lang/Object;)Z");
-	    mv.visitInsn(POP);
-	    // }
-	    mv.visitJumpInsn(GOTO, l2);
-	    mv.visitLabel(l3);
-	} else {
-	    generateMethodSetterAssignValueConvert(mv, p_ClassName, p_Method,
-		    p_LdapAttribute, p_ParameterTypes[0]);
-	    // attribute.add(value);
-	    mv.visitVarInsn(ALOAD, 4);
-	    mv.visitVarInsn(ALOAD, 5);
-	    mv.visitMethodInsn(INVOKEINTERFACE,
-		    "javax/naming/directory/Attribute", "add",
-		    "(Ljava/lang/Object;)Z");
-	    mv.visitInsn(POP);
+	Class<?>[] parameterTypes = p_Method.getParameterTypes();
+	ConvertAttribute[] annotations = getConvertAttributeAnnotation(p_Method);
+	int nbArray = 0;
+	for (int i = 0; i < parameterTypes.length; i++) {
+	    if ((parameterTypes[i].isArray() || Collection.class
+		    .isAssignableFrom(parameterTypes[i]))
+		    && annotations[i] == null) {
+		int paramStackIndex = getStackIndexOfParameter(p_Method, i);
+		mv.visitVarInsn(ILOAD, p_StartStack + 1);
+		mv.visitVarInsn(ALOAD, paramStackIndex);
+		if (parameterTypes[i].isArray()) {
+		    mv.visitInsn(ARRAYLENGTH);
+		} else if (Collection.class.isAssignableFrom(parameterTypes[i])) {
+		    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Collection",
+			    "size", "()I");
+		}
+		mv.visitInsn(IADD);
+		mv.visitVarInsn(ISTORE, p_StartStack + 1);
+		nbArray++;
+	    }
 	}
+	if (nbArray != 0) {
+	    mv.visitVarInsn(ILOAD, p_StartStack + 1);
+	}
+	if (parameterTypes.length != nbArray) {
+	    mv.visitIntInsn(BIPUSH, parameterTypes.length - nbArray);
+	}
+	if (nbArray != 0 && parameterTypes.length != nbArray) {
+	    mv.visitInsn(IADD);
+	}
+	mv.visitTypeInsn(ANEWARRAY, "java/lang/String");
+	mv.visitVarInsn(ASTORE, p_StartStack);
+	mv.visitInsn(ICONST_0);
+	mv.visitVarInsn(ISTORE, p_StartStack + 1);
     }
 
     /**
@@ -813,43 +815,239 @@ public final class LdapBeanClassManager {
      *            The name of the class
      * @param p_Method
      *            the generated method
+     * @param p_ParamIndex
+     *            index of the parameter to convert
+     * @param p_StartIndex
+     *            first index of the stack after parameters
      * @param p_LdapAttribute
      *            The LdapAttribute that will be used for generating the method
+     * @param p_ParameterType
+     *            The type of the parameter
+     */
+    private void generateMethodSetterAssignValue(MethodVisitor p_MethodVisitor,
+	    String p_ClassName, Method p_Method, int p_ParamIndex,
+	    int p_StartIndex, LdapAttribute p_LdapAttribute,
+	    Class<?> p_ParameterType) {
+	MethodVisitor mv = p_MethodVisitor;
+	int paramStackIndex = getStackIndexOfParameter(p_Method, p_ParamIndex);
+	ConvertAttribute annotation = getConvertAttributeAnnotation(p_Method)[p_ParamIndex];
+
+	if (Collection.class.isAssignableFrom(p_ParameterType)) {
+	    /*
+	     * The parameter is a collection, each element of the collection
+	     * will be added
+	     */
+	    // Iterator it = p_AttributeValue.iterator();
+	    mv.visitVarInsn(ALOAD, paramStackIndex);
+	    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Collection",
+		    "iterator", "()Ljava/util/Iterator;");
+	    mv.visitVarInsn(ASTORE, p_StartIndex + 5);
+	    // while(it.hasNext()) {
+	    Label l2 = new Label();
+	    mv.visitLabel(l2);
+	    mv.visitVarInsn(ALOAD, p_StartIndex + 5);
+	    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator",
+		    "hasNext", "()Z");
+	    Label l3 = new Label();
+	    mv.visitJumpInsn(IFEQ, l3);
+
+	    // Object value = it.next();
+	    mv.visitVarInsn(ALOAD, p_StartIndex + 5);
+	    mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next",
+		    "()Ljava/lang/Object;");
+	    mv.visitVarInsn(ASTORE, p_StartIndex + 4);
+	    // convert value to String
+	    // TODO : Find another way to convert object
+	    generateMethodSetterAssignValueConvert(mv, p_ClassName, p_Method,
+		    p_StartIndex + 4, p_StartIndex, p_LdapAttribute,
+		    annotation, Object.class);
+	    generateMethodSetterAssignValueToTempArray(mv, p_ClassName,
+		    p_Method, p_StartIndex + 4, p_StartIndex);
+	    // }
+	    mv.visitJumpInsn(GOTO, l2);
+	    mv.visitLabel(l3);
+	} else if (p_ParameterType.isArray()) {
+	    // TODO
+	    // int i=0;
+	    mv.visitInsn(ICONST_0);
+	    mv.visitVarInsn(ISTORE, p_StartIndex + 5);
+	    // while(i<values.length) {
+	    Label l0 = new Label();
+	    Label l1 = new Label();
+	    mv.visitLabel(l0);
+	    mv.visitVarInsn(ILOAD, p_StartIndex + 5);
+	    mv.visitVarInsn(ALOAD, paramStackIndex);
+	    mv.visitInsn(ARRAYLENGTH);
+	    mv.visitJumpInsn(IF_ICMPGE, l1);
+	    // value = values[i];
+	    mv.visitVarInsn(ALOAD, paramStackIndex);
+	    mv.visitVarInsn(ILOAD, p_StartIndex + 1);
+	    mv.visitInsn(AALOAD);
+	    mv.visitVarInsn(ASTORE, p_StartIndex + 4);
+	    // convert value to String
+	    generateMethodSetterAssignValueConvert(mv, p_ClassName, p_Method,
+		    p_StartIndex + 4, p_StartIndex, p_LdapAttribute,
+		    annotation, p_ParameterType.getComponentType());
+	    generateMethodSetterAssignValueToTempArray(mv, p_ClassName,
+		    p_Method, p_StartIndex + 4, p_StartIndex);
+	    // i++;
+	    mv.visitIincInsn(p_StartIndex + 5, 1);
+	    // }
+	    mv.visitJumpInsn(GOTO, l0);
+	    mv.visitLabel(l1);
+	} else {
+	    generateMethodSetterAssignValueConvert(mv, p_ClassName, p_Method,
+		    paramStackIndex, p_StartIndex, p_LdapAttribute, annotation,
+		    p_ParameterType);
+	    generateMethodSetterAssignValueToTempArray(mv, p_ClassName,
+		    p_Method, p_StartIndex + 4, p_StartIndex);
+	}
+    }
+
+    /**
+     * Generate a method of the generated class
+     * 
+     * @param p_MethodVisitor
+     *            The {@link MethodVisitor} of the generated method
+     * @param p_ClassName
+     *            The name of the class
+     * @param p_Method
+     *            the generated method
+     * @param p_ObjectIndex
+     *            Index in the stack of the object to add to the temporary
+     *            result array
+     * @param p_StartIndex
+     *            First index of the stack after parameters
+     */
+    private void generateMethodSetterAssignValueToTempArray(
+	    MethodVisitor p_MethodVisitor, String p_ClassName, Method p_Method,
+	    int p_ObjectIndex, int p_StartIndex) {
+	MethodVisitor mv = p_MethodVisitor;
+	mv.visitVarInsn(ALOAD, p_StartIndex);
+	mv.visitVarInsn(ILOAD, p_StartIndex + 1);
+	mv.visitIincInsn(p_StartIndex + 1, 1);
+	mv.visitVarInsn(ALOAD, p_ObjectIndex);
+	mv.visitInsn(AASTORE);
+    }
+
+    /**
+     * Generate a method of the generated class
+     * 
+     * @param p_MethodVisitor
+     *            The {@link MethodVisitor} of the generated method
+     * @param p_ClassName
+     *            The name of the class
+     * @param p_Method
+     *            the generated method
+     * @param p_StartIndex
+     *            First index of the stack after parameters
+     * @param p_LdapAttribute
+     *            LdapAttribute of the generated method
+     */
+    private void generateMethodSetterAssignResult(
+	    MethodVisitor p_MethodVisitor, String p_ClassName, Method p_Method,
+	    int p_StartIndex, LdapAttribute p_LdapAttribute) {
+	MethodVisitor mv = p_MethodVisitor;
+	if (p_LdapAttribute.pattern().length() == 0) {
+	    // int i=0;
+	    mv.visitInsn(ICONST_0);
+	    mv.visitVarInsn(ISTORE, p_StartIndex + 1);
+	    // {
+	    Label l0 = new Label();
+	    mv.visitJumpInsn(GOTO, l0);
+	    Label l1 = new Label();
+	    mv.visitLabel(l1);
+	    mv.visitVarInsn(ALOAD, p_StartIndex + 3);
+	    // value = tempValues[i];
+	    mv.visitVarInsn(ALOAD, p_StartIndex);
+	    mv.visitVarInsn(ILOAD, p_StartIndex + 1);
+	    mv.visitInsn(AALOAD);
+	    // attribute.add(value);
+	    mv.visitMethodInsn(INVOKEINTERFACE,
+		    "javax/naming/directory/Attribute", "add",
+		    "(Ljava/lang/Object;)Z");
+	    mv.visitInsn(POP);
+	    // i++
+	    mv.visitIincInsn(p_StartIndex + 1, 1);
+	    // }
+	    mv.visitLabel(l0);
+	    // i < tempValues.length
+	    mv.visitVarInsn(ILOAD, p_StartIndex + 1);
+	    mv.visitVarInsn(ALOAD, p_StartIndex);
+	    mv.visitInsn(ARRAYLENGTH);
+	    mv.visitJumpInsn(IF_ICMPLT, l1);
+	} else {
+	    mv.visitVarInsn(ALOAD, p_StartIndex + 3);
+	    mv.visitLdcInsn(p_LdapAttribute.pattern());
+	    mv.visitVarInsn(ALOAD, p_StartIndex);
+	    mv.visitMethodInsn(INVOKESTATIC, "ldapbeans/util/StringUtil",
+		    "format", "(Ljava/lang/String;[Ljava/lang/Object;)"
+			    + "Ljava/lang/String;");
+	    // attribute.add(value);
+	    mv.visitMethodInsn(INVOKEINTERFACE,
+		    "javax/naming/directory/Attribute", "add",
+		    "(Ljava/lang/Object;)Z");
+	    mv.visitInsn(POP);
+	}
+
+    }
+
+    /**
+     * Generate a portion of a method of the generated class
+     * 
+     * @param p_MethodVisitor
+     *            The {@link MethodVisitor} of the generated method
+     * @param p_ClassName
+     *            The name of the class
+     * @param p_Method
+     *            the generated method
+     * @param p_ObjectStackIndex
+     *            index of the object to convert in the stack
+     * @param p_StartIndex
+     *            first index of the stack after parameters
+     * @param p_LdapAttribute
+     *            The LdapAttribute that will be used for generating the method
+     * @param p_Annotation
+     *            Annotation of the used parameter
      * @param p_OriginalType
      *            The type before conversion
      */
     private void generateMethodSetterAssignValueConvert(
 	    MethodVisitor p_MethodVisitor, String p_ClassName, Method p_Method,
-	    LdapAttribute p_LdapAttribute, Class<?> p_OriginalType) {
+	    int p_ObjectStackIndex, int p_StartIndex,
+	    LdapAttribute p_LdapAttribute, ConvertAttribute p_Annotation,
+	    Class<?> p_OriginalType) {
 	MethodVisitor mv = p_MethodVisitor;
 	/* the parameter is a simple type, it is simply added */
 	if ((Boolean.class.equals(p_OriginalType) || boolean.class
 		.equals(p_OriginalType))) {
 	    // String value = p_AttributeValue?"true":"false";
 	    generateMethodSetterAssignValueConvertBoolean(p_MethodVisitor,
-		    p_LdapAttribute, p_OriginalType);
+		    p_ObjectStackIndex, p_StartIndex, p_LdapAttribute,
+		    p_OriginalType);
 	} else if (Number.class.isAssignableFrom(p_OriginalType)) {
 	    // String value = String.valueOf(p_AttributeValue);
 	    generateMethodSetterAssignValueConvertNumber(p_MethodVisitor,
-		    p_OriginalType);
+		    p_ObjectStackIndex, p_StartIndex, p_OriginalType);
 	} else if (p_OriginalType.isPrimitive()) {
 	    // String value = String.valueOf(p_AttributeValue);
 	    generateMethodSetterAssignValueConvertPrimitive(p_MethodVisitor,
-		    p_OriginalType);
+		    p_ObjectStackIndex, p_StartIndex, p_OriginalType);
 	} else if (String.class.isAssignableFrom(p_OriginalType)) {
 	    // String value = p_AttributeValue;
 	    generateMethodSetterAssignValueConvertString(p_MethodVisitor,
-		    p_OriginalType);
+		    p_ObjectStackIndex, p_StartIndex, p_OriginalType);
 	} else if (LdapBean.class.isAssignableFrom(p_OriginalType)) {
 	    // String value = p_AttributeValue.getDN();
 	    generateMethodSetterAssignValueConvertLdapBean(p_MethodVisitor,
-		    p_ClassName, p_Method, p_OriginalType);
+		    p_ClassName, p_Method, p_ObjectStackIndex, p_StartIndex,
+		    p_Annotation, p_OriginalType);
 	} else {
 	    // String value = String.valueOf(p_AttributeValue);
-	    mv.visitVarInsn(ALOAD, 1);
+	    mv.visitVarInsn(ALOAD, p_ObjectStackIndex);
 	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf",
 		    "(Ljava/lang/Object;)Ljava/lang/String;");
-	    mv.visitVarInsn(ASTORE, 5);
+	    mv.visitVarInsn(ASTORE, p_StartIndex + 4);
 	}
     }
 
@@ -858,21 +1056,26 @@ public final class LdapBeanClassManager {
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
+     * @param p_ObjectStackIndex
+     *            index of the object to convert in the stack
+     * @param p_StartIndex
+     *            first index of the stack after parameters
      * @param p_LdapAttribute
      *            The LdapAttribute that will be used for generating the method
      * @param p_OriginalType
      *            The type before conversion
      */
     private void generateMethodSetterAssignValueConvertBoolean(
-	    MethodVisitor p_MethodVisitor, LdapAttribute p_LdapAttribute,
+	    MethodVisitor p_MethodVisitor, int p_ObjectStackIndex,
+	    int p_StartIndex, LdapAttribute p_LdapAttribute,
 	    Class<?> p_OriginalType) {
 	MethodVisitor mv = p_MethodVisitor;
 	if (Boolean.class.equals(p_OriginalType)) {
-	    mv.visitVarInsn(ALOAD, 1);
+	    mv.visitVarInsn(ALOAD, p_ObjectStackIndex);
 	    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Boolean",
 		    "booleanValue", "()Z");
 	} else {
-	    mv.visitVarInsn(ILOAD, 1);
+	    mv.visitVarInsn(ILOAD, p_ObjectStackIndex);
 	}
 	Label l2 = new Label();
 	mv.visitJumpInsn(IFEQ, l2);
@@ -882,7 +1085,7 @@ public final class LdapBeanClassManager {
 	mv.visitLabel(l2);
 	mv.visitLdcInsn(p_LdapAttribute.falseValue()[0]);
 	mv.visitLabel(l3);
-	mv.visitVarInsn(ASTORE, 5);
+	mv.visitVarInsn(ASTORE, p_StartIndex + 4);
     }
 
     /**
@@ -890,16 +1093,21 @@ public final class LdapBeanClassManager {
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
+     * @param p_ObjectStackIndex
+     *            index of the object to convert in the stack
+     * @param p_StartIndex
+     *            first index of the stack after parameters
      * @param p_OriginalType
      *            The type before conversion
      */
     private void generateMethodSetterAssignValueConvertNumber(
-	    MethodVisitor p_MethodVisitor, Class<?> p_OriginalType) {
+	    MethodVisitor p_MethodVisitor, int p_ObjectStackIndex,
+	    int p_StartIndex, Class<?> p_OriginalType) {
 	MethodVisitor mv = p_MethodVisitor;
-	mv.visitVarInsn(ALOAD, 1);
+	mv.visitVarInsn(ALOAD, p_ObjectStackIndex);
 	mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "toString",
 		"()Ljava/lang/String;");
-	mv.visitVarInsn(ASTORE, 5);
+	mv.visitVarInsn(ASTORE, p_StartIndex + 4);
     }
 
     /**
@@ -907,20 +1115,25 @@ public final class LdapBeanClassManager {
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
+     * @param p_ObjectStackIndex
+     *            index of the object to convert in the stack
+     * @param p_StartIndex
+     *            first index of the stack after parameters
      * @param p_OriginalType
      *            The type before conversion
      */
     private void generateMethodSetterAssignValueConvertPrimitive(
-	    MethodVisitor p_MethodVisitor, Class<?> p_OriginalType) {
+	    MethodVisitor p_MethodVisitor, int p_ObjectStackIndex,
+	    int p_StartIndex, Class<?> p_OriginalType) {
 	MethodVisitor mv = p_MethodVisitor;
 	if (true == double.class.equals(p_OriginalType)) {
-	    mv.visitVarInsn(DLOAD, 1);
+	    mv.visitVarInsn(DLOAD, p_ObjectStackIndex);
 	} else if (true == long.class.equals(p_OriginalType)) {
-	    mv.visitVarInsn(LLOAD, 1);
+	    mv.visitVarInsn(LLOAD, p_ObjectStackIndex);
 	} else if (true == float.class.equals(p_OriginalType)) {
-	    mv.visitVarInsn(FLOAD, 1);
+	    mv.visitVarInsn(FLOAD, p_ObjectStackIndex);
 	} else {
-	    mv.visitVarInsn(ILOAD, 1);
+	    mv.visitVarInsn(ILOAD, p_ObjectStackIndex);
 	}
 	if (short.class.equals(p_OriginalType)) {
 	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Short", "toString",
@@ -931,7 +1144,7 @@ public final class LdapBeanClassManager {
 	    mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf", "("
 		    + type.toString() + ")Ljava/lang/String;");
 	}
-	mv.visitVarInsn(ASTORE, 5);
+	mv.visitVarInsn(ASTORE, p_StartIndex + 4);
     }
 
     /**
@@ -939,14 +1152,19 @@ public final class LdapBeanClassManager {
      * 
      * @param p_MethodVisitor
      *            The {@link MethodVisitor} of the generated method
+     * @param p_ObjectStackIndex
+     *            index of the object to convert in the stack
+     * @param p_StartIndex
+     *            first index of the stack after parameters
      * @param p_OriginalType
      *            The type before conversion
      */
     private void generateMethodSetterAssignValueConvertString(
-	    MethodVisitor p_MethodVisitor, Class<?> p_OriginalType) {
+	    MethodVisitor p_MethodVisitor, int p_ObjectStackIndex,
+	    int p_StartIndex, Class<?> p_OriginalType) {
 	MethodVisitor mv = p_MethodVisitor;
-	mv.visitVarInsn(ALOAD, 1);
-	mv.visitVarInsn(ASTORE, 5);
+	mv.visitVarInsn(ALOAD, p_ObjectStackIndex);
+	mv.visitVarInsn(ASTORE, p_StartIndex + 4);
     }
 
     /**
@@ -958,23 +1176,29 @@ public final class LdapBeanClassManager {
      *            The name of the class
      * @param p_Method
      *            the generated method
+     * @param p_ObjectStackIndex
+     *            index of the object to convert in the stack
+     * @param p_StartIndex
+     *            first index of the stack after parameters
+     * @param p_Annotation
+     *            Annotation of the parameter to convert
      * @param p_OriginalType
      *            The type before conversion
      */
     private void generateMethodSetterAssignValueConvertLdapBean(
 	    MethodVisitor p_MethodVisitor, String p_ClassName, Method p_Method,
-	    Class<?> p_OriginalType) {
+	    int p_ObjectStackIndex, int p_StartIndex,
+	    ConvertAttribute p_Annotation, Class<?> p_OriginalType) {
 	MethodVisitor mv = p_MethodVisitor;
-	ConvertAttribute[] annotations = getConvertAttributeAnnotation(p_Method);
 	String methodName = "getDN";
-	if (annotations[0] != null) {
-	    methodName = annotations[0].method();
+	if (p_Annotation != null) {
+	    methodName = p_Annotation.method();
 	}
-	mv.visitVarInsn(ALOAD, 1);
+	mv.visitVarInsn(ALOAD, p_ObjectStackIndex);
 	mv.visitMethodInsn(INVOKEINTERFACE,
 		Type.getInternalName(p_OriginalType), methodName,
 		"()Ljava/lang/String;");
-	mv.visitVarInsn(ASTORE, 5);
+	mv.visitVarInsn(ASTORE, p_StartIndex + 4);
     }
 
     /**
@@ -1805,6 +2029,31 @@ public final class LdapBeanClassManager {
 		}
 	    }
 	    i++;
+	}
+	return result;
+    }
+
+    /**
+     * Return the index in the stack of the n'th (n=p_ParameterIndex) parameter
+     * 
+     * @param p_Method
+     *            the method
+     * @param p_ParameterIndex
+     *            the index of the parameter in the method (the first parameter
+     *            start at 0)
+     * @return the index of the stack after the n'th parameter
+     */
+    private static int getStackIndexOfParameter(Method p_Method,
+	    int p_ParameterIndex) {
+	int result = 1;
+	Class<?>[] parameterTypes = p_Method.getParameterTypes();
+	for (int i = 0; i < p_ParameterIndex; i++) {
+	    Class<?> clazz = parameterTypes[i];
+	    if (long.class.equals(clazz) || double.class.equals(clazz)) {
+		result += 2;
+	    } else {
+		result += 1;
+	    }
 	}
 	return result;
     }
