@@ -50,7 +50,6 @@ public class StringUtilTest {
     public void testGetRegexpGroup() throws Exception {
 	String[] groups = StringUtil.getRegexpGroup("***a|b|c***",
 		"(\\w*)\\|(\\w*)\\|(\\w*)");
-	System.out.println(Arrays.asList(groups));
 	Assert.assertEquals(Arrays.asList(new String[] { "a", "b", "c" }),
 		Arrays.asList(groups));
     }
