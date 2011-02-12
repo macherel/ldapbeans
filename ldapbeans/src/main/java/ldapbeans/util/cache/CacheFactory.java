@@ -22,7 +22,7 @@ package ldapbeans.util.cache;
 
 public final class CacheFactory {
     public static enum CacheType {
-	SIMPLE, LRU, COMMITABLE
+	SIMPLE, LRU, COMMITABLE, SOFT, WEAK
     }
 
     /** Unique instance of the CacheActory */
@@ -66,6 +66,12 @@ public final class CacheFactory {
 	    break;
 	case COMMITABLE:
 	    cache = new CommitableCacheImpl<K, V>();
+	    break;
+	case SOFT:
+	    cache = new SoftCache<K, V>();
+	    break;
+	case WEAK:
+	    cache = new WeakCache<K, V>();
 	    break;
 	default:
 	    cache = new SimpleCache<K, V>();
