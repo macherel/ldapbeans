@@ -23,6 +23,14 @@ package ldapbeans.bean;
 public class LdapBeanClassLoader extends ClassLoader {
 
     /**
+     * Construct the classloader for LdapBean classes. It depends on the context
+     * classloader.
+     */
+    public LdapBeanClassLoader() {
+	super(Thread.currentThread().getContextClassLoader());
+    }
+
+    /**
      * Define a new class
      * 
      * @param p_ClassName
