@@ -192,12 +192,11 @@ public class LdapObjectManager {
     public List<LdapObject> search(String p_LdapSearch) throws NamingException {
 	List<LdapObject> result = new ArrayList<LdapObject>();
 	Attributes attributes = null;
-	LdapContext context = null;
 	SearchControls searchControls = new SearchControls();
 	NamingEnumeration<SearchResult> namingEnumeration;
 	String dn = null;
+	LdapContext context = m_Pool.acquire();
 	try {
-	    context = m_Pool.acquire();
 	    searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 	    namingEnumeration = context.search(m_Root, p_LdapSearch,
 		    searchControls);
@@ -229,12 +228,11 @@ public class LdapObjectManager {
     public LdapObject searchFirst(String p_LdapSearch) throws NamingException {
 	LdapObject result = null;
 	Attributes attributes = null;
-	LdapContext context = null;
 	SearchControls searchControls = new SearchControls();
 	NamingEnumeration<SearchResult> namingEnumeration;
 	String dn = null;
+	LdapContext context = m_Pool.acquire();
 	try {
-	    context = m_Pool.acquire();
 	    searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 	    namingEnumeration = context.search(m_Root, p_LdapSearch,
 		    searchControls);

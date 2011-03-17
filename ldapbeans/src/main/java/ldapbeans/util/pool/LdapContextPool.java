@@ -28,6 +28,7 @@ import javax.naming.directory.DirContext;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 
+import ldapbeans.util.pool.exception.PooledObjectCreationExeption;
 import ldapbeans.util.pool.exception.NotValidObjectException;
 
 public class LdapContextPool extends AbstractPool<LdapContext> {
@@ -66,7 +67,7 @@ public class LdapContextPool extends AbstractPool<LdapContext> {
      * @see AbstractPool#create()
      */
     @Override
-    protected LdapContext create() {
+    protected LdapContext create() throws PooledObjectCreationExeption {
 	LdapContext context = null;
 	Hashtable<String, String> environment = new Hashtable<String, String>();
 	try {
@@ -83,7 +84,7 @@ public class LdapContextPool extends AbstractPool<LdapContext> {
 
 	    context = new InitialLdapContext(environment, null);
 	} catch (NamingException e) {
-	    e.printStackTrace();
+	    throw new PooledObjectCreationExeption(e);
 	}
 	return context;
     }

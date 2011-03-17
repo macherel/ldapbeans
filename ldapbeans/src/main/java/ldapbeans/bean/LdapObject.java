@@ -106,9 +106,8 @@ public class LdapObject {
      *             If an error occurs
      */
     public void store() throws NamingException {
-	LdapContext context = null;
+	LdapContext context = m_Pool.acquire();
 	try {
-	    context = m_Pool.acquire();
 	    if (m_IsNew) {
 		context.createSubcontext(getDn(), getAttributes());
 		m_IsNew = false;
@@ -128,9 +127,8 @@ public class LdapObject {
      *             If an error occurs
      */
     public void restore() throws NamingException {
-	LdapContext context = null;
+	LdapContext context = m_Pool.acquire();
 	try {
-	    context = m_Pool.acquire();
 	    m_Attributes = context.getAttributes(m_Dn);
 	    m_IsNew = false;
 	} finally {
@@ -147,9 +145,8 @@ public class LdapObject {
      *             If an error occurs
      */
     public void move(String p_Dn) throws NamingException {
-	LdapContext context = null;
+	LdapContext context = m_Pool.acquire();
 	try {
-	    context = m_Pool.acquire();
 	    context.rename(getDn(), p_Dn);
 	    m_Dn = p_Dn;
 	    // Some attributes may have change when moving.
@@ -168,9 +165,8 @@ public class LdapObject {
      *             If an error occurs
      */
     public void remove() throws NamingException {
-	LdapContext context = null;
+	LdapContext context = m_Pool.acquire();
 	try {
-	    context = m_Pool.acquire();
 	    context.destroySubcontext(getDn());
 	    m_IsNew = true;
 	} finally {

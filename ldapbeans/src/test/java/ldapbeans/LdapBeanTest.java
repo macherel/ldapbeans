@@ -51,7 +51,7 @@ import org.junit.runner.RunWith;
  * Test a single search.
  */
 @RunWith(FrameworkRunner.class)
-@CreateLdapServer(transports = { @CreateTransport(protocol = "LDAP", port = 10389) }, allowAnonymousAccess = true)
+@CreateLdapServer(transports = { @CreateTransport(protocol = "LDAP") }, allowAnonymousAccess = true)
 @ApplyLdifFiles({ "ldapbeans.ldif" })
 public class LdapBeanTest {
     public static DirectoryService service;
@@ -67,11 +67,6 @@ public class LdapBeanTest {
      */
     @BeforeClass
     public static void initialize() throws Exception {
-	// int port = ldapServer.getPort();
-	int port = 10389;
-	s_Manager = LdapBeanManager.getInstance("ldap://localhost:" + port,
-		"ou=system", null, null);
-
 	LdapBeanHelper.getInstance().scanPackage("ldapbeans.bean");
     }
 
@@ -83,7 +78,23 @@ public class LdapBeanTest {
      */
     @After
     public void teardown() throws Exception {
-	s_Manager.clearCache();
+	if (s_Manager != null) {
+	    s_Manager.clearCache();
+	}
+    }
+
+    /**
+     * Return the {@link LdapBeanManager} correctly initialized
+     * 
+     * @return The {@link LdapBeanManager} correctly initialized
+     */
+    private static LdapBeanManager getLdapBeanManager() {
+	if (s_Manager == null) {
+	    int port = ldapServer.getPort();
+	    s_Manager = LdapBeanManager.getInstance("ldap://localhost:" + port,
+		    "ou=system", null, null);
+	}
+	return s_Manager;
     }
 
     /**
@@ -95,7 +106,7 @@ public class LdapBeanTest {
     @Test
     public void testSimpleCreate() throws Exception {
 	Person person = null;
-	person = s_Manager.create(Person.class, "cn=foo,ou=system");
+	person = getLdapBeanManager().create(Person.class, "cn=foo,ou=system");
 	person.setCommonName("foo");
 	// surname is mandatory
 	person.setSurname("surname");
@@ -112,7 +123,7 @@ public class LdapBeanTest {
     @Test
     public void testCreateWithoutRdnAttribute() throws Exception {
 	Person person = null;
-	person = s_Manager.create(Person.class, "cn=foo,ou=system");
+	person = getLdapBeanManager().create(Person.class, "cn=foo,ou=system");
 	// surname is mandatory
 	person.setSurname("surname");
 	// Saving bean add 'foo' to 'cn' attribute because it is a part of 'rdn'
@@ -134,7 +145,7 @@ public class LdapBeanTest {
     @Test
     public void testCreateWithAnotherValueForRdnAttribute() throws Exception {
 	Person person = null;
-	person = s_Manager.create(Person.class, "cn=foo,ou=system");
+	person = getLdapBeanManager().create(Person.class, "cn=foo,ou=system");
 	// surname is mandatory
 	person.setSurname("surname");
 	person.setCommonName("bar");
@@ -194,7 +205,8 @@ public class LdapBeanTest {
     public void testCreateBeanAlreadyExists() throws Exception {
 	Person person = null;
 	// Kim Wilde already exists, bean is restored from directory
-	person = s_Manager.create(Person.class, "cn=Kim Wilde,ou=system");
+	person = getLdapBeanManager().create(Person.class,
+		"cn=Kim Wilde,ou=system");
 	Assert.assertEquals("cn=Kim Wilde,ou=system", person.getDN());
 	Assert.assertEquals("Kim Wilde", person.getCommonName());
 	Assert.assertEquals("Wilde", person.getSurname());
@@ -211,10 +223,12 @@ public class LdapBeanTest {
     public void testRemove() throws Exception {
 	Person person = null;
 
-	person = s_Manager.findByDn(Person.class, "cn=Kim Wilde,ou=system");
+	person = getLdapBeanManager().findByDn(Person.class,
+		"cn=Kim Wilde,ou=system");
 	Assert.assertNotNull(person);
 	person.remove();
-	person = s_Manager.findByDn(Person.class, "cn=Kim Wilde,ou=system");
+	person = getLdapBeanManager().findByDn(Person.class,
+		"cn=Kim Wilde,ou=system");
 	Assert.assertNull(person);
 
     }
@@ -226,10 +240,12 @@ public class LdapBeanTest {
     public void testFindByDn() {
 	Person person = null;
 
-	person = s_Manager.findByDn(Person.class, "cn=foo,ou=system");
+	person = getLdapBeanManager()
+		.findByDn(Person.class, "cn=foo,ou=system");
 	Assert.assertNull(person + " should not exist", person);
 
-	person = s_Manager.findByDn(Person.class, "cn=Kim Wilde,ou=system");
+	person = getLdapBeanManager().findByDn(Person.class,
+		"cn=Kim Wilde,ou=system");
 	Assert.assertNotNull(person);
 	Assert.assertEquals("cn=Kim Wilde,ou=system", person.getDN());
 	Assert.assertEquals("Kim Wilde", person.getCommonName());
@@ -247,7 +263,8 @@ public class LdapBeanTest {
     public void testStore() throws Exception {
 	Person person = null;
 
-	person = s_Manager.findByDn(Person.class, "cn=Kim Wilde,ou=system");
+	person = getLdapBeanManager().findByDn(Person.class,
+		"cn=Kim Wilde,ou=system");
 	Assert.assertNotNull(person);
 	Assert.assertEquals("cn=Kim Wilde,ou=system", person.getDN());
 	Assert.assertEquals("Kim Wilde", person.getCommonName());
@@ -256,7 +273,7 @@ public class LdapBeanTest {
 	person.setSurname("foo");
 	Assert.assertEquals("Surname should have changed.", "foo",
 		person.getSurname());
-	Person otherPerson = s_Manager.findByDn(Person.class,
+	Person otherPerson = getLdapBeanManager().findByDn(Person.class,
 		"cn=Kim Wilde,ou=system");
 	Assert.assertEquals("Surname should have changed in cache.", "foo",
 		otherPerson.getSurname());
@@ -266,7 +283,8 @@ public class LdapBeanTest {
 	person.setSurname("foo");
 	person.store();
 	person.restore();
-	person = s_Manager.findByDn(Person.class, "cn=Kim Wilde,ou=system");
+	person = getLdapBeanManager().findByDn(Person.class,
+		"cn=Kim Wilde,ou=system");
 	Assert.assertEquals("foo", person.getSurname());
 
     }
@@ -282,7 +300,8 @@ public class LdapBeanTest {
     public void testRestore() throws Exception {
 	Person person = null;
 
-	person = s_Manager.findByDn(Person.class, "cn=Kim Wilde,ou=system");
+	person = getLdapBeanManager().findByDn(Person.class,
+		"cn=Kim Wilde,ou=system");
 	Assert.assertNotNull(person);
 	Assert.assertEquals("cn=Kim Wilde,ou=system", person.getDN());
 	Assert.assertEquals("Kim Wilde", person.getCommonName());
@@ -304,7 +323,8 @@ public class LdapBeanTest {
     public void testMove() throws Exception {
 	Person person = null;
 
-	person = s_Manager.findByDn(Person.class, "cn=Kim Wilde,ou=system");
+	person = getLdapBeanManager().findByDn(Person.class,
+		"cn=Kim Wilde,ou=system");
 	Assert.assertNotNull(person);
 	Assert.assertEquals("cn=Kim Wilde,ou=system", person.getDN());
 	Assert.assertEquals("Kim Wilde", person.getCommonName());
@@ -312,10 +332,12 @@ public class LdapBeanTest {
 
 	person.move("cn=foo,ou=system");
 
-	person = s_Manager.findByDn(Person.class, "cn=Kim Wilde,ou=system");
+	person = getLdapBeanManager().findByDn(Person.class,
+		"cn=Kim Wilde,ou=system");
 	Assert.assertNull(person + " should have moved.", person);
 
-	person = s_Manager.findByDn(Person.class, "cn=foo,ou=system");
+	person = getLdapBeanManager()
+		.findByDn(Person.class, "cn=foo,ou=system");
 	Assert.assertNotNull(person);
 	Assert.assertEquals("cn=foo,ou=system", person.getDN());
 	Assert.assertEquals("foo", person.getCommonName());
@@ -327,10 +349,11 @@ public class LdapBeanTest {
      */
     @Test
     public void testFind() {
-	Person person = (Person) s_Manager.findByDn("cn=Kim Wilde,ou=system");
+	Person person = (Person) getLdapBeanManager().findByDn(
+		"cn=Kim Wilde,ou=system");
 	Assert.assertNotNull("cn=Kim Wilde,ou=system should exist", person);
 
-	OrganizationalUnit ou = (OrganizationalUnit) s_Manager
+	OrganizationalUnit ou = (OrganizationalUnit) getLdapBeanManager()
 		.findByDn("ou=system");
 	Assert.assertNotNull("ou=system should exist", ou);
     }
@@ -343,8 +366,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testBooleanGetter() throws Exception {
-	BeanForBooleanTest bean = s_Manager.create(BeanForBooleanTest.class,
-		"ou=foo,ou=system");
+	BeanForBooleanTest bean = getLdapBeanManager().create(
+		BeanForBooleanTest.class, "ou=foo,ou=system");
 	// 1. Set string and check
 	setAndCheckBooleanBean(bean, "true", true);
 	setAndCheckBooleanBean(bean, "false", false);
@@ -431,8 +454,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testByte() throws Exception {
-	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
-		"ou=foo,ou=system");
+	BeanForNumberTest bean = getLdapBeanManager().create(
+		BeanForNumberTest.class, "ou=foo,ou=system");
 	bean.setDescription("42");
 	bean.store();
 	bean.restore();
@@ -463,8 +486,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testShort() throws Exception {
-	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
-		"ou=foo,ou=system");
+	BeanForNumberTest bean = getLdapBeanManager().create(
+		BeanForNumberTest.class, "ou=foo,ou=system");
 	bean.setDescription("42");
 	bean.store();
 	bean.restore();
@@ -495,8 +518,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testInteger() throws Exception {
-	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
-		"ou=foo,ou=system");
+	BeanForNumberTest bean = getLdapBeanManager().create(
+		BeanForNumberTest.class, "ou=foo,ou=system");
 	bean.setDescription("42");
 	bean.store();
 	bean.restore();
@@ -527,8 +550,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testLong() throws Exception {
-	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
-		"ou=foo,ou=system");
+	BeanForNumberTest bean = getLdapBeanManager().create(
+		BeanForNumberTest.class, "ou=foo,ou=system");
 	bean.setDescription("42");
 	bean.store();
 	bean.restore();
@@ -559,8 +582,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testFloat() throws Exception {
-	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
-		"ou=foo,ou=system");
+	BeanForNumberTest bean = getLdapBeanManager().create(
+		BeanForNumberTest.class, "ou=foo,ou=system");
 	bean.setDescription("42");
 	bean.store();
 	bean.restore();
@@ -591,8 +614,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testDouble() throws Exception {
-	BeanForNumberTest bean = s_Manager.create(BeanForNumberTest.class,
-		"ou=foo,ou=system");
+	BeanForNumberTest bean = getLdapBeanManager().create(
+		BeanForNumberTest.class, "ou=foo,ou=system");
 	bean.setDescription("42");
 	bean.store();
 	bean.restore();
@@ -623,7 +646,7 @@ public class LdapBeanTest {
      */
     @Test
     public void testChar() throws Exception {
-	BeanForTest bean = s_Manager.create(BeanForTest.class,
+	BeanForTest bean = getLdapBeanManager().create(BeanForTest.class,
 		"ou=foo,ou=system");
 	bean.setDescription("a");
 	bean.store();
@@ -655,7 +678,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testLdapBeanGetterByDn() throws Exception {
-	Person parent = (Person) s_Manager.findByDn("cn=parent,ou=system");
+	Person parent = (Person) getLdapBeanManager().findByDn(
+		"cn=parent,ou=system");
 	Assert.assertNotNull("cn=parent,ou=system should exist", parent);
 
 	Person child = parent.getOtherPersonByDn();
@@ -677,8 +701,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testLdapBeanGetterBySimpleSeach() throws Exception {
-	Person parent = (Person) s_Manager
-		.findByDn("cn=parent_simple_search,ou=system");
+	Person parent = (Person) getLdapBeanManager().findByDn(
+		"cn=parent_simple_search,ou=system");
 	Assert.assertNotNull("cn=parent_simple_search,ou=system should exist",
 		parent);
 
@@ -701,8 +725,8 @@ public class LdapBeanTest {
      */
     @Test
     public void testLdapBeanGetterByRegexpSearch() throws Exception {
-	Person parent = (Person) s_Manager
-		.findByDn("cn=parent_regexp_search,ou=system");
+	Person parent = (Person) getLdapBeanManager().findByDn(
+		"cn=parent_regexp_search,ou=system");
 	Assert.assertNotNull("cn=parent_regexp_search,ou=system should exist",
 		parent);
 
@@ -723,7 +747,8 @@ public class LdapBeanTest {
 	for (int i = 0; i < 10; i++) {
 	    descriptions.add("description_" + i);
 	}
-	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	Person foo = getLdapBeanManager().create(Person.class,
+		"cn=foo,ou=system");
 	foo.setCommonName("foo");
 	foo.setSurname("surname");
 	foo.setDescriptions(descriptions);
@@ -736,7 +761,8 @@ public class LdapBeanTest {
 	for (int i = 0; i < descriptions.length; i++) {
 	    descriptions[i] = "description_" + i;
 	}
-	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	Person foo = getLdapBeanManager().create(Person.class,
+		"cn=foo,ou=system");
 	foo.setCommonName("foo");
 	foo.setSurname("surname");
 	foo.setDescriptionArray(descriptions);
@@ -751,10 +777,12 @@ public class LdapBeanTest {
      */
     @Test
     public void testLdapBeanSetter() throws Exception {
-	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	Person foo = getLdapBeanManager().create(Person.class,
+		"cn=foo,ou=system");
 	foo.setCommonName("foo");
 	foo.setSurname("surname");
-	Person bar = s_Manager.create(Person.class, "cn=bar,ou=system");
+	Person bar = getLdapBeanManager().create(Person.class,
+		"cn=bar,ou=system");
 	bar.setCommonName("bar");
 	bar.setSurname("surname");
 
@@ -784,11 +812,13 @@ public class LdapBeanTest {
      */
     @Test
     public void testLdapBeanSetterUsingUid() throws Exception {
-	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	Person foo = getLdapBeanManager().create(Person.class,
+		"cn=foo,ou=system");
 	foo.setUid("foo");
 	foo.setCommonName("foo");
 	foo.setSurname("surname");
-	Person bar = s_Manager.create(Person.class, "cn=bar,ou=system");
+	Person bar = getLdapBeanManager().create(Person.class,
+		"cn=bar,ou=system");
 	bar.setUid("bar");
 	bar.setCommonName("bar");
 	bar.setSurname("surname");
@@ -811,7 +841,8 @@ public class LdapBeanTest {
 
     @Test
     public void testMultipleSetter() throws Exception {
-	Person foo = s_Manager.create(Person.class, "cn=foo,ou=system");
+	Person foo = getLdapBeanManager().create(Person.class,
+		"cn=foo,ou=system");
 	foo.setUid("foo");
 	foo.setCommonName("foo");
 	foo.setSurname("surname");

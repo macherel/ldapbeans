@@ -21,22 +21,13 @@
 package ldapbeans.util.pool.exception;
 
 @SuppressWarnings("serial")
-public abstract class PoolException extends RuntimeException {
-
+public class PooledObjectCreationExeption extends PoolException {
     /**
      * {@inheritDoc}
      * 
-     * @see PoolException#RuntimeException()
+     * @see PoolException#PoolException(Throwable)
      */
-    public PoolException() {
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see PoolException#RuntimeException(Throwable)
-     */
-    public PoolException(Throwable p_Cause) {
+    public PooledObjectCreationExeption(Throwable p_Cause) {
 	super(p_Cause);
     }
 }
