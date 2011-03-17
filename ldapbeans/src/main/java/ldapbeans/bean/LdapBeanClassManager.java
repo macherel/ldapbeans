@@ -87,6 +87,7 @@ import ldapbeans.annotation.ConvertAttribute;
 import ldapbeans.annotation.LdapAttribute;
 import ldapbeans.config.LdapbeansConfiguration;
 import ldapbeans.config.LdapbeansMessageManager;
+import ldapbeans.util.cache.GenericKey;
 import ldapbeans.util.i18n.Logger;
 
 import org.objectweb.asm.ClassWriter;
@@ -98,6 +99,47 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 public final class LdapBeanClassManager {
+
+    private static class LdapBeanClassLoaderManager {
+
+	private final Map<ClassLoader, LdapBeanClassLoader> m_Classloaders;
+
+	/**
+	 * The default constructor to initialize attributes
+	 */
+	public LdapBeanClassLoaderManager() {
+	    m_Classloaders = new HashMap<ClassLoader, LdapBeanClassLoader>();
+	}
+
+	/**
+	 * Return a {@link LdapBeanClassLoader} depending the context
+	 * ClassLoader (i.e. Thread.currentThread().getContextClassLoader())
+	 * 
+	 * @return a {@link LdapBeanClassLoader} depending the context
+	 *         ClassLoader (i.e.
+	 *         Thread.currentThread().getContextClassLoader())
+	 * @see Thread#getContextClassLoader()
+	 */
+	public LdapBeanClassLoader get() {
+	    LdapBeanClassLoader result;
+	    ClassLoader parent = Thread.currentThread().getContextClassLoader();
+	    synchronized (m_Classloaders) {
+		result = m_Classloaders.get(parent);
+		if (result == null) {
+		    result = new LdapBeanClassLoader();
+		    m_Classloaders.put(parent, result);
+		}
+	    }
+	    return result;
+	}
+    }
+
+    /** package name of the generated classes */
+    private final static String GENERATED_PACKAGE = "ldapbeans.bean.generated";
+
+    /** Internal name of the generated classes package */
+    private final static String INTERNAL_PACKAGE_NAME = GENERATED_PACKAGE
+	    .replace('.', '/');
 
     /** Instance of the logger for this class */
     private final static Logger LOG = Logger.getLogger();
@@ -129,17 +171,17 @@ public final class LdapBeanClassManager {
     /** Counter of generated classes */
     private int m_Count;
 
-    private final Map<String, Class<?>> m_GeneratedClasses;
+    private final Map<GenericKey, Class<?>> m_GeneratedClasses;
 
-    private final LdapBeanClassLoader m_ClassLoader;
+    private final LdapBeanClassLoaderManager m_ClassLoader;
 
     /**
      * Default constructor. This class can not be instantiated.
      */
     private LdapBeanClassManager() {
 	m_Count = 0;
-	m_GeneratedClasses = new HashMap<String, Class<?>>();
-	m_ClassLoader = new LdapBeanClassLoader();
+	m_GeneratedClasses = new HashMap<GenericKey, Class<?>>();
+	m_ClassLoader = new LdapBeanClassLoaderManager();
     }
 
     /**
@@ -153,7 +195,8 @@ public final class LdapBeanClassManager {
     public Class<?> getClass(Class<?>[] p_Interfaces) {
 
 	Class<?> result;
-	String key = getClassKey(p_Interfaces);
+	GenericKey key = new GenericKey((Object[]) p_Interfaces);
+	// String key = getClassKey(p_Interfaces);
 
 	synchronized (m_GeneratedClasses) {
 	    result = m_GeneratedClasses.get(key);
@@ -183,8 +226,8 @@ public final class LdapBeanClassManager {
 	}
 
 	ClassWriter cw = new ClassWriter(COMPUTE_MAXS + COMPUTE_FRAMES);
-	cw.visit(V1_5, ACC_PUBLIC, "ldapbeans/bean/" + className, null,
-		superClass, interfaces);
+	cw.visit(V1_5, ACC_PUBLIC, INTERNAL_PACKAGE_NAME + '/' + className,
+		null, superClass, interfaces);
 	// Create fields
 	generateField(cw);
 	// create constructor
@@ -213,7 +256,7 @@ public final class LdapBeanClassManager {
 	String generatedClassPath = CONFIG.getGeneratedClassPath();
 	if (generatedClassPath != null) {
 	    String filename = className + ".class";
-	    File parent = new File(generatedClassPath, "ldapbeans/bean");
+	    File parent = new File(generatedClassPath, INTERNAL_PACKAGE_NAME);
 	    if (!parent.exists()) {
 		parent.mkdirs();
 	    }
@@ -232,7 +275,8 @@ public final class LdapBeanClassManager {
 		    generatedClassPath));
 	}
 
-	return m_ClassLoader.defineClass("ldapbeans.bean." + className, datas);
+	return m_ClassLoader.get().defineClass(
+		GENERATED_PACKAGE + '.' + className, datas);
     }
 
     /**
@@ -286,15 +330,15 @@ public final class LdapBeanClassManager {
 	mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
 	mv.visitVarInsn(ALOAD, 0);
 	mv.visitVarInsn(ALOAD, 1);
-	mv.visitFieldInsn(PUTFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(PUTFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapBeanManager", "Lldapbeans/bean/LdapBeanManager;");
 	mv.visitVarInsn(ALOAD, 0);
 	mv.visitVarInsn(ALOAD, 2);
-	mv.visitFieldInsn(PUTFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(PUTFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObjectManager", "Lldapbeans/bean/LdapObjectManager;");
 	mv.visitVarInsn(ALOAD, 0);
 	mv.visitVarInsn(ALOAD, 3);
-	mv.visitFieldInsn(PUTFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(PUTFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitInsn(RETURN);
 	mv.visitMaxs(0, 0);
@@ -379,7 +423,7 @@ public final class LdapBeanClassManager {
 		p_Method.getName(), p_MethodDescriptor, null, null);
 	mv.visitCode();
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObject", "getDn",
 		"()Ljava/lang/String;");
@@ -406,10 +450,10 @@ public final class LdapBeanClassManager {
 		"()V", null, new String[] { "javax/naming/NamingException" });
 	mv.visitCode();
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObjectManager", "Lldapbeans/bean/LdapObjectManager;");
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObjectManager",
 		"storeLdapObject", "(Lldapbeans/bean/LdapObject;)V");
@@ -436,10 +480,10 @@ public final class LdapBeanClassManager {
 		"()V", null, new String[] { "javax/naming/NamingException" });
 	mv.visitCode();
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObjectManager", "Lldapbeans/bean/LdapObjectManager;");
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObjectManager",
 		"restoreLdapObject", "(Lldapbeans/bean/LdapObject;)V");
@@ -468,10 +512,10 @@ public final class LdapBeanClassManager {
 	mv.visitCode();
 	// this.m_LdapObjectManager.moveLdapObject(this.m_LdapObject, p_Dn);
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObjectManager", "Lldapbeans/bean/LdapObjectManager;");
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitVarInsn(ALOAD, 1);
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObjectManager",
@@ -500,10 +544,10 @@ public final class LdapBeanClassManager {
 		"()V", null, new String[] { "javax/naming/NamingException" });
 	mv.visitCode();
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObjectManager", "Lldapbeans/bean/LdapObjectManager;");
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObjectManager",
 		"removeLdapObject", "(Lldapbeans/bean/LdapObject;)V");
@@ -530,7 +574,7 @@ public final class LdapBeanClassManager {
 		"()Ljava/lang/String;", null, null);
 	mv.visitCode();
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObject",
 		"toString", "()Ljava/lang/String;");
@@ -701,7 +745,7 @@ public final class LdapBeanClassManager {
 	String attributeName = p_LdapAttribute.value();
 	// Attributes attributes = m_LdapObject.getAttributes();
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObject",
 		"getAttributes", "()Ljavax/naming/directory/Attributes;");
@@ -1267,7 +1311,7 @@ public final class LdapBeanClassManager {
 	mv.visitTryCatchBlock(l0, l1, l2, "javax/naming/NamingException");
 	// Attributes attributes = m_LdapObject.getAttributes();
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapObject", "Lldapbeans/bean/LdapObject;");
 	mv.visitMethodInsn(INVOKEVIRTUAL, "ldapbeans/bean/LdapObject",
 		"getAttributes", "()Ljavax/naming/directory/Attributes;");
@@ -1702,7 +1746,7 @@ public final class LdapBeanClassManager {
 	// result = m_LdapBeanManager.searchFirst(p_ReturnType,
 	// "search_filter");
 	mv.visitVarInsn(ALOAD, 0);
-	mv.visitFieldInsn(GETFIELD, "ldapbeans/bean/" + p_ClassName,
+	mv.visitFieldInsn(GETFIELD, INTERNAL_PACKAGE_NAME + '/' + p_ClassName,
 		"m_LdapBeanManager", "Lldapbeans/bean/LdapBeanManager;");
 	if (p_ReturnType != null) {
 	    mv.visitLdcInsn(Type.getType(p_ReturnType));
@@ -1992,21 +2036,6 @@ public final class LdapBeanClassManager {
 	mv.visitInsn(Opcodes.SWAP);
 	mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println",
 		"(Ljava/lang/Object;)V");
-    }
-
-    /**
-     * Return a key for a generated class based on specific interfaces
-     * 
-     * @param p_Interfaces
-     *            Interfaces
-     * @return a key for a generated class based on specific interfaces
-     */
-    private String getClassKey(Class<?>[] p_Interfaces) {
-	StringBuilder result = new StringBuilder();
-	for (Class<?> clazz : p_Interfaces) {
-	    result.append(clazz.getName()).append(' ');
-	}
-	return result.toString();
     }
 
     /**
