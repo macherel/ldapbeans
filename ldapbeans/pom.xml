@@ -18,6 +18,9 @@
     <developerConnection>scm:svn:https://ldapbeans.googlecode.com/svn/trunk/ldapbeans</developerConnection>
     <url>http://code.google.com/p/ldapbeans/source/browse/trunk/ldapbeans</url>
   </scm>
+  <properties>
+    <apache.directory.version>1.5.7</apache.directory.version>
+  </properties>
   <distributionManagement>
     <!-- use the following if you're not using a snapshot version. -->
     <repository>
@@ -71,13 +74,13 @@
     <dependency>
       <groupId>org.apache.directory.server</groupId>
       <artifactId>apacheds-core-integ</artifactId>
-      <version>1.5.7</version>
+      <version>${apache.directory.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.directory.server</groupId>
       <artifactId>apacheds-server-integ</artifactId>
-      <version>1.5.7</version>
+      <version>${apache.directory.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

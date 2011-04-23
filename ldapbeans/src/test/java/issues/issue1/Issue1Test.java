@@ -43,7 +43,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
 @RunWith(FrameworkRunner.class)
-@CreateLdapServer(transports = { @CreateTransport(protocol = "LDAP") }, allowAnonymousAccess = true)
+@CreateLdapServer(transports = { @CreateTransport(protocol = "LDAP", port = 2001) }, allowAnonymousAccess = true)
 @ApplyLdifFiles({ "ldapbeans.ldif" })
 public class Issue1Test {
     public static DirectoryService service;
@@ -90,7 +90,6 @@ public class Issue1Test {
 	public Class<?> loadClass(String p_Name) throws ClassNotFoundException {
 	    Class<?> result;
 	    if (classToLoad(p_Name)) {
-		System.out.println(p_Name);
 		try {
 		    ClassWriter cw = new ClassWriter(0);
 		    ClassAdapter ca = new ClassAdapter(cw);
@@ -187,9 +186,6 @@ public class Issue1Test {
 	public void test() throws Exception {
 	    TestLdapBean bean = null;
 	    Object o = s_Manager.create(TestLdapBean.class, "ou=foo,ou=system");
-	    System.out.println(o.getClass() + " - "
-		    + o.getClass().getClassLoader());
-	    System.out.println("######################");
 	    bean = (TestLdapBean) o;
 	    bean.store();
 	}
